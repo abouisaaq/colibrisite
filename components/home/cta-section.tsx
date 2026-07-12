@@ -182,9 +182,9 @@ export function CtaSection({
             </motion.div>
 
             <motion.div
-              className="relative order-1 min-h-[240px] overflow-hidden sm:min-h-[300px] lg:order-2 lg:min-h-full"
+              className="relative order-1 isolate min-h-[260px] overflow-hidden sm:min-h-[320px] lg:order-2 lg:min-h-full lg:h-full"
               initial={false}
-              animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 0, y: 24 }}
+              animate={inView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.8, ease: EASE, delay: inView ? 0.06 : 0 }}
             >
               <Image
@@ -192,8 +192,16 @@ export function CtaSection({
                 alt="Enfant tenant un cœur rouge, symbole d'espoir"
                 fill
                 sizes="(max-width: 1024px) 100vw, 480px"
-                className="donation-hero-image object-cover object-top"
+                className="!absolute !inset-0 h-full w-full object-cover object-top"
                 priority
+              />
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[40%] bg-gradient-to-r from-white from-10% via-white/55 to-transparent lg:block"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-20 bg-gradient-to-t from-white to-transparent lg:hidden"
+                aria-hidden
               />
             </motion.div>
           </div>

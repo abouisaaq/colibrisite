@@ -250,9 +250,9 @@ export function DonationForm({
         </motion.div>
 
         <motion.div
-          className="relative order-1 min-h-[240px] overflow-hidden sm:min-h-[300px] lg:order-2 lg:min-h-full"
-          initial={{ opacity: 0, x: 56 }}
-          animate={{ opacity: 1, x: 0 }}
+          className="relative order-1 isolate min-h-[260px] overflow-hidden sm:min-h-[320px] lg:order-2 lg:min-h-full lg:h-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: EASE, delay: 0.06 }}
         >
           <Image
@@ -260,8 +260,16 @@ export function DonationForm({
             alt="Enfant tenant un cœur rouge, symbole d'espoir"
             fill
             sizes="(max-width: 1024px) 100vw, 480px"
-            className="donation-hero-image object-cover object-top"
+            className="!absolute !inset-0 h-full w-full object-cover object-top"
             priority
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[40%] bg-gradient-to-r from-white from-10% via-white/55 to-transparent lg:block"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-20 bg-gradient-to-t from-white to-transparent lg:hidden"
+            aria-hidden
           />
         </motion.div>
       </div>

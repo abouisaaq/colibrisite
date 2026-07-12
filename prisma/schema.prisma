@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum DonationFrequency {
+  ONE_TIME
+  MONTHLY
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum VolunteerStatus {
+  NEW
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(EDITOR)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  imageUrl    String?
+  category    String   @default("Actualité")
+  published   Boolean  @default(false)
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EventType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#42D7C8")
+  order     Int      @default(0)
+  events    Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  description String
+  location    String
+  startDate   DateTime
+  endDate     DateTime?
+  imageUrl    String?
+  eventTypeId String?
+  eventType   EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
+  status      EventStatus @default(UPCOMING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Action {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String
+  icon        String    @default("heart")
+  order       Int       @default(0)
+  imageUrl    String?
+  projects    Project[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  imageUrl    String?
+  goalAmount  Float?
+  raisedAmount Float   @default(0)
+  progress    Int      @default(0)
+  actionId    String?
+  action      Action?  @relation(fields: [actionId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryAlbum {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  description String?
+  coverUrl    String?
+  images      GalleryImage[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model GalleryImage {
+  id        String       @id @default(cuid())
+  url       String
+  alt       String?
+  order     Int          @default(0)
+  albumId   String
+  album     GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+}
+
+model Donation {
+  id            String            @id @default(cuid())
+  amount        Float
+  currency      String            @default("EUR")
+  frequency     DonationFrequency @default(ONE_TIME)
+  status        DonationStatus    @default(PENDING)
+  donorName     String?
+  donorEmail    String?
+  paypalOrderId String?           @unique
+  paypalSubId   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Volunteer {
+  id           String          @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  skills       String?
+  availability String?
+  domains      String?
+  message      String?
+  status       VolunteerStatus @default(NEW)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id        String          @id @default(cuid())
+  name      String
+  role      String?
+  quote     String
+  type      TestimonialType @default(BENEFICIAIRE)
+  iconKey   String?
+  usePhoto  Boolean         @default(false)
+  imageUrl  String?
+  order     Int             @default(0)
+  published Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+enum TestimonialType {
+  BENEFICIAIRE
+  BENEVOLE
+  DONATEUR
+  PARTENAIRE
+  ENSEIGNANT
+  MEDECIN
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  name      String   @default("")
+  phone     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  name        String
+  logoUrl     String
+  websiteUrl  String?
+  order       Int      @default(0)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+  UNKNOWN
+}
+
+model SiteVisit {
+  id          String     @id @default(cuid())
+  visitorId   String
+  path        String
+  referrer    String?
+  userAgent   String?
+  deviceType  DeviceType @default(UNKNOWN)
+  browser     String?
+  os          String?
+  country     String?
+  countryCode String?
+  city        String?
+  createdAt   DateTime   @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId])
+  @@index([country])
+  @@index([deviceType])
+}

@@ -62,7 +62,7 @@ export const actionSchema = z.object({
   title: z.string().min(3),
   slug: z.string().min(3),
   description: z.string().min(10),
-  icon: z.string().default("heart"),
+  icon: z.string().default("Heart"),
   order: z.number().default(0),
   imageUrl: z.string().optional(),
 });

@@ -1,17 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Utensils,
-  GraduationCap,
-  HeartPulse,
-  Home,
-  Palette,
-  Droplets,
-  type LucideIcon,
-} from "lucide-react";
 import { SectionHeader } from "@/components/home/section-header";
 import { ScrollReveal, StaggerReveal, useSectionInView } from "@/components/home/scroll-reveal";
+import { resolveActionIcon } from "@/lib/action-icons";
 import { cn } from "@/lib/utils";
 
 function useActionsGridColumns() {
@@ -49,16 +41,6 @@ function getActionCardEntryOffset(index: number, columns: number): { x: number; 
   if (col === 2) return { x: 72, y: 0 };
   return row % 2 === 0 ? { x: 0, y: -56 } : { x: 0, y: 56 };
 }
-
-const iconMap: Record<string, LucideIcon> = {
-  utensils: Utensils,
-  "graduation-cap": GraduationCap,
-  "heart-pulse": HeartPulse,
-  home: Home,
-  palette: Palette,
-  droplets: Droplets,
-  heart: HeartPulse,
-};
 
 const ACTION_STYLES: Record<
   string,
@@ -161,7 +143,7 @@ export function ActionsGrid({
 
         <div className="actions-row-grid mt-10">
           {sorted.map((action, index) => {
-            const Icon = iconMap[action.icon] ?? HeartPulse;
+            const Icon = resolveActionIcon(action.icon);
             const style = ACTION_STYLES[action.slug] ?? {
               iconBg: "bg-[#14B8A6]",
               iconColor: "text-white",

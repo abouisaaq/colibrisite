@@ -43,7 +43,7 @@ export default async function ArticlePage({ params }: Props) {
       <div className="site-container flex max-w-3xl items-center justify-center gap-3 pt-8">
         <Badge className="bg-colibri-teal">{article.category}</Badge>
         <span className="text-sm text-muted-foreground">
-          {formatDate(new Date(article._creationTime))}
+          {formatDate(new Date(article.publishedAt ?? article._creationTime))}
         </span>
       </div>
 

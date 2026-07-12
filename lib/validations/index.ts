@@ -31,6 +31,8 @@ export const articleSchema = z.object({
   imageUrl: z.string().optional(),
   category: z.string().default("Actualité"),
   published: z.boolean().default(false),
+  /** Date d'affichage (YYYY-MM-DD) */
+  publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide"),
   metaTitle: z.string().optional(),
   metaDesc: z.string().optional(),
 });

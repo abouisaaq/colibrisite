@@ -54,8 +54,16 @@ export async function saveSettings(settings: Record<string, string>) {
 export async function createArticle(data: unknown) {
   await requireAuth();
   const parsed = articleSchema.parse(data);
+  const [year, month, day] = parsed.publishedAt.split("-").map(Number);
+  const publishedAt = new Date(year!, month! - 1, day!, 12, 0, 0).getTime();
   const id = await client().mutation(api.articles.create, {
-    ...parsed,
+    title: parsed.title,
+    slug: parsed.slug,
+    excerpt: parsed.excerpt,
+    content: parsed.content,
+    category: parsed.category,
+    published: parsed.published,
+    publishedAt,
     imageUrl: parsed.imageUrl || undefined,
     metaTitle: parsed.metaTitle || undefined,
     metaDesc: parsed.metaDesc || undefined,
@@ -68,9 +76,17 @@ export async function createArticle(data: unknown) {
 export async function updateArticle(id: string, data: unknown) {
   await requireAuth();
   const parsed = articleSchema.parse(data);
+  const [year, month, day] = parsed.publishedAt.split("-").map(Number);
+  const publishedAt = new Date(year!, month! - 1, day!, 12, 0, 0).getTime();
   await client().mutation(api.articles.update, {
     id: id as Id<"articles">,
-    ...parsed,
+    title: parsed.title,
+    slug: parsed.slug,
+    excerpt: parsed.excerpt,
+    content: parsed.content,
+    category: parsed.category,
+    published: parsed.published,
+    publishedAt,
     imageUrl: parsed.imageUrl || undefined,
     metaTitle: parsed.metaTitle || undefined,
     metaDesc: parsed.metaDesc || undefined,

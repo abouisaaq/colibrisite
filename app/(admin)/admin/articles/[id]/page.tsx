@@ -32,6 +32,7 @@ export default async function EditArticlePage({ params }: Props) {
             imageUrl: article.imageUrl ?? null,
             category: article.category,
             published: article.published,
+            publishedAt: article.publishedAt ?? article._creationTime,
             metaTitle: article.metaTitle ?? null,
             metaDesc: article.metaDesc ?? null,
           }}

@@ -48,9 +48,9 @@ export function CtaSection({
     <section ref={sectionRef} className="site-section bg-[#F8FAFC]">
       <div className="site-container">
         <div className="overflow-hidden rounded-[28px] border border-[#E5E7EB] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.08)]">
-          <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
             <motion.div
-              className="flex flex-col justify-center p-6 sm:p-8 lg:p-10 lg:pr-6"
+              className="order-2 flex flex-col justify-center p-6 sm:p-8 lg:order-1 lg:p-10 lg:pr-6"
               initial={false}
               animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.8, ease: EASE }}
@@ -182,7 +182,7 @@ export function CtaSection({
             </motion.div>
 
             <motion.div
-              className="relative min-h-[280px] bg-white sm:min-h-[340px] lg:min-h-[440px]"
+              className="relative order-1 min-h-[240px] overflow-hidden sm:min-h-[300px] lg:order-2 lg:min-h-full"
               initial={false}
               animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 0, y: 24 }}
               transition={{ duration: 0.8, ease: EASE, delay: inView ? 0.06 : 0 }}
@@ -192,7 +192,7 @@ export function CtaSection({
                 alt="Enfant tenant un cœur rouge, symbole d'espoir"
                 fill
                 sizes="(max-width: 1024px) 100vw, 480px"
-                className="donation-hero-image object-cover object-center"
+                className="donation-hero-image object-cover object-top"
                 priority
               />
             </motion.div>

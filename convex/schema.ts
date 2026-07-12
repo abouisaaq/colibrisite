@@ -17,6 +17,8 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     category: v.string(),
     published: v.boolean(),
+    /** Date d'affichage / publication (ms). Fallback: _creationTime */
+    publishedAt: v.optional(v.number()),
     metaTitle: v.optional(v.string()),
     metaDesc: v.optional(v.string()),
   })

@@ -57,7 +57,11 @@ export default async function AdminArticlesPage() {
                     {article.published ? "Publié" : "Brouillon"}
                   </Badge>
                 </TableCell>
-                <TableCell>{formatDate(new Date(article._creationTime))}</TableCell>
+                <TableCell>
+                  {formatDate(
+                    new Date(article.publishedAt ?? article._creationTime)
+                  )}
+                </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button asChild variant="ghost" size="sm">
                     <Link href={`/admin/articles/${article.id}`}>

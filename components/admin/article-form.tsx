@@ -21,6 +21,7 @@ interface Article {
   imageUrl?: string | null;
   category: string;
   published: boolean;
+  publishedAt?: number | null;
   metaTitle?: string | null;
   metaDesc?: string | null;
 }
@@ -38,6 +39,14 @@ function excerptFromContent(html: string) {
     .trim();
   if (text.length <= 160) return text || "Article";
   return `${text.slice(0, 157).trim()}…`;
+}
+
+function toDateInputValue(ms?: number | null) {
+  const d = new Date(ms ?? Date.now());
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function ArticleForm({ article, action, updateAction }: ArticleFormProps) {
@@ -97,6 +106,7 @@ export function ArticleForm({ article, action, updateAction }: ArticleFormProps)
       content,
       imageUrl: imageUrl.trim() || undefined,
       category: formData.get("category") as string,
+      publishedAt: formData.get("publishedAt") as string,
       published: formData.get("published") === "on",
       metaTitle: (formData.get("metaTitle") as string) || undefined,
       metaDesc: (formData.get("metaDesc") as string) || undefined,
@@ -217,14 +227,27 @@ export function ArticleForm({ article, action, updateAction }: ArticleFormProps)
         </p>
       </div>
 
-      <div>
-        <Label htmlFor="category">Catégorie</Label>
-        <Input
-          id="category"
-          name="category"
-          defaultValue={article?.category ?? "Actualité"}
-          className="mt-1"
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="category">Catégorie</Label>
+          <Input
+            id="category"
+            name="category"
+            defaultValue={article?.category ?? "Actualité"}
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="publishedAt">Date de publication</Label>
+          <Input
+            id="publishedAt"
+            name="publishedAt"
+            type="date"
+            required
+            defaultValue={toDateInputValue(article?.publishedAt)}
+            className="mt-1"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

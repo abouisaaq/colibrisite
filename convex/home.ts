@@ -19,8 +19,7 @@ export const homePage = bridgedQuery({
       ctx.db
         .query("articles")
         .withIndex("by_published", (q) => q.eq("published", true))
-        .order("desc")
-        .take(4),
+        .collect(),
       ctx.db
         .query("events")
         .withIndex("by_status", (q) => q.eq("status", "UPCOMING"))
@@ -53,10 +52,15 @@ export const homePage = bridgedQuery({
     );
     eventsWithTypes.sort((a, b) => a.startDate - b.startDate);
 
+    const sortedArticles = [...articles].sort(
+      (a, b) =>
+        (b.publishedAt ?? b._creationTime) - (a.publishedAt ?? a._creationTime)
+    );
+
     return {
       settings,
       actions: actions.map((a) => ({ ...a, id: a._id })),
-      articles: articles.map((a) => ({
+      articles: sortedArticles.slice(0, 4).map((a) => ({
         ...a,
         id: a._id,
       })),

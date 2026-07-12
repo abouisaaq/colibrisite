@@ -83,6 +83,7 @@ export default async function HomePage() {
             excerpt: string;
             imageUrl?: string;
             category: string;
+            publishedAt?: number;
             _creationTime: number;
           }) => ({
             id: article.id,
@@ -91,7 +92,7 @@ export default async function HomePage() {
             excerpt: article.excerpt,
             imageUrl: article.imageUrl ?? null,
             category: article.category,
-            createdAt: new Date(article._creationTime),
+            createdAt: new Date(article.publishedAt ?? article._creationTime),
           })
         )}
         events={events.map(

@@ -35,7 +35,9 @@ export default async function NewsPage() {
                 excerpt: article.excerpt,
                 imageUrl: article.imageUrl ?? null,
                 category: article.category,
-                createdAt: new Date(article._creationTime).toISOString(),
+                createdAt: new Date(
+                  article.publishedAt ?? article._creationTime
+                ).toISOString(),
               }))}
             />
           </div>

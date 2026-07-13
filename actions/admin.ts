@@ -397,7 +397,65 @@ export async function deleteUser(id: string) {
   revalidatePath("/admin/utilisateurs");
 }
 
-/** Upload image vers Convex File Storage */
+const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
+
+export type UploadedMediaMeta = {
+  storageId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+};
+
+/** URL signée Convex — le navigateur envoie le fichier directement (évite la limite Next/Vercel). */
+export async function createMediaUploadUrl() {
+  await requireAuth();
+  return client().mutation(api.media.generateUploadUrl, {});
+}
+
+/** Enregistre un fichier déjà uploadé sur Convex Storage. */
+export async function finalizeUploadedMedia(meta: UploadedMediaMeta) {
+  await requireAuth();
+  if (!meta.storageId?.trim()) {
+    throw new Error("Identifiant de fichier manquant");
+  }
+  if (!meta.mimeType?.trim()) {
+    throw new Error("Type de fichier manquant");
+  }
+  if (!Number.isFinite(meta.size) || meta.size <= 0) {
+    throw new Error("Taille de fichier invalide");
+  }
+
+  const filename =
+    meta.filename?.trim() ||
+    `${Date.now()}-${meta.mimeType.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
+  const media = await client().mutation(api.media.saveUploaded, {
+    storageId: meta.storageId as Id<"_storage">,
+    filename,
+    mimeType: meta.mimeType,
+    size: meta.size,
+  });
+
+  return {
+    id: media.id,
+    url: media.url,
+    filename,
+    mimeType: meta.mimeType,
+    size: meta.size,
+    createdAt: Date.now(),
+  };
+}
+
+function assertVideoMeta(meta: UploadedMediaMeta) {
+  if (!meta.mimeType.startsWith("video/")) {
+    throw new Error("Le fichier doit être une vidéo (MP4, WebM…)");
+  }
+  if (meta.size > MAX_VIDEO_BYTES) {
+    throw new Error("La vidéo ne doit pas dépasser 80 Mo");
+  }
+}
+
+/** Upload image vers Convex File Storage (fichiers légers via Server Action). */
 export async function uploadFile(formData: FormData) {
   await requireAuth();
   const file = formData.get("file") as File | null;
@@ -408,29 +466,7 @@ export async function uploadFile(formData: FormData) {
     throw new Error("Le fichier doit être une image (PNG, JPG, WebP, SVG…)");
   }
 
-  return saveUploadedMedia(file);
-}
-
-/** Upload vidéo vers Convex File Storage */
-export async function uploadVideoFile(formData: FormData) {
-  await requireAuth();
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) {
-    throw new Error("Aucun fichier sélectionné");
-  }
-  if (!file.type.startsWith("video/")) {
-    throw new Error("Le fichier doit être une vidéo (MP4, WebM…)");
-  }
-  if (file.size > 80 * 1024 * 1024) {
-    throw new Error("La vidéo ne doit pas dépasser 80 Mo");
-  }
-
-  return saveUploadedMedia(file);
-}
-
-async function saveUploadedMedia(file: File) {
-  const c = client();
-  const uploadUrl = await c.mutation(api.media.generateUploadUrl, {});
+  const uploadUrl = await createMediaUploadUrl();
   const result = await fetch(uploadUrl, {
     method: "POST",
     headers: { "Content-Type": file.type },
@@ -439,22 +475,14 @@ async function saveUploadedMedia(file: File) {
   if (!result.ok) {
     throw new Error("Échec du téléversement Convex");
   }
-  const { storageId } = (await result.json()) as { storageId: Id<"_storage"> };
+  const { storageId } = (await result.json()) as { storageId: string };
   const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-  const media = await c.mutation(api.media.saveUploaded, {
+  return finalizeUploadedMedia({
     storageId,
     filename,
     mimeType: file.type,
     size: file.size,
   });
-  return {
-    id: media.id,
-    url: media.url,
-    filename,
-    mimeType: file.type,
-    size: file.size,
-    createdAt: Date.now(),
-  };
 }
 
 export async function uploadSiteLogo(formData: FormData) {
@@ -656,12 +684,14 @@ export async function removeStorySeismePhoto(slot: StorySeismePhotoSlot) {
   revalidatePath("/admin/medias");
 }
 
-export async function uploadStorySeismeVideo(formData: FormData) {
+export async function uploadStorySeismeVideo(meta: UploadedMediaMeta) {
   await requireAdmin();
-  const media = await uploadVideoFile(formData);
+  assertVideoMeta(meta);
+  const media = await finalizeUploadedMedia(meta);
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoFile, media.url);
   revalidatePath("/a-propos");
   revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
   return media.url;
 }
 
@@ -752,12 +782,14 @@ export async function removeStoryTerrainPhoto(slot: StoryTerrainPhotoSlot) {
   revalidatePath("/admin/medias");
 }
 
-export async function uploadStoryTerrainVideo(formData: FormData) {
+export async function uploadStoryTerrainVideo(meta: UploadedMediaMeta) {
   await requireAdmin();
-  const media = await uploadVideoFile(formData);
+  assertVideoMeta(meta);
+  const media = await finalizeUploadedMedia(meta);
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoFile, media.url);
   revalidatePath("/a-propos");
   revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
   return media.url;
 }
 

@@ -18,6 +18,7 @@ import {
   type StoryTerrainPhotoSlot,
 } from "@/lib/about-story-terrain";
 import { parseYouTubeVideoId } from "@/lib/about-story-media";
+import { uploadVideoToConvex } from "@/lib/client-video-upload";
 import { toast } from "sonner";
 
 const PHOTO_SLOTS: {
@@ -166,27 +167,18 @@ export function StoryTerrainMediaUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("video/")) {
-      toast.error("Veuillez sélectionner une vidéo (MP4, WebM…)");
-      return;
-    }
-    if (file.size > 80 * 1024 * 1024) {
-      toast.error("La vidéo ne doit pas dépasser 80 Mo — préférez YouTube pour les fichiers lourds");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
     startTransition(async () => {
       try {
-        const url = await uploadStoryTerrainVideo(formData);
+        const meta = await uploadVideoToConvex(file);
+        const url = await uploadStoryTerrainVideo(meta);
         setVideo(url);
         toast.success("Vidéo enregistrée");
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Erreur lors du téléversement"
         );
+      } finally {
+        if (videoInputRef.current) videoInputRef.current.value = "";
       }
     });
   }

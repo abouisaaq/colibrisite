@@ -22,6 +22,7 @@ import {
   MessageCircle,
   Handshake,
   FolderOpen,
+  BookOpen,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ const navGroups = [
       { href: "/admin/temoignages", label: "Témoignages", icon: MessageSquareQuote },
       { href: "/admin/partenaires", label: "Partenaires", icon: Handshake },
       { href: "/admin/medias", label: "Médias", icon: FolderOpen },
+      { href: "/admin/histoire", label: "Notre histoire", icon: BookOpen },
       { href: "/admin/galerie", label: "Galerie", icon: Images },
     ],
   },

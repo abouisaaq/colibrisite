@@ -4,6 +4,15 @@ import { PageHero } from "@/components/layout/page-hero";
 import { SiteMain } from "@/components/layout/site-main";
 import { getPublicSettings } from "@/lib/settings";
 import { resolveSitePageImage } from "@/lib/site-images";
+import { resolveStorySeismeMedia } from "@/lib/about-story-media";
+import { resolveStoryPremieresMedia } from "@/lib/about-story-premieres";
+import { resolveStoryConfortMedia } from "@/lib/about-story-confort";
+import { resolveStoryTerrainMedia } from "@/lib/about-story-terrain";
+import { resolveStoryCreationImage } from "@/lib/about-story-creation";
+import {
+  parseStoryChaptersCms,
+  STORY_CHAPTERS_CMS_KEY,
+} from "@/lib/about-story-cms";
 import {
   parseAboutCommitments,
   parseAboutTeamMembers,
@@ -57,6 +66,12 @@ export default async function AboutPage() {
           partners={settings.stat_partners ?? "15"}
           storyImageUrl={resolveSitePageImage(settings, "about_story")}
           colibriImageUrl={resolveSitePageImage(settings, "about_colibri")}
+          seismeMedia={resolveStorySeismeMedia(settings)}
+          premieresMedia={resolveStoryPremieresMedia(settings)}
+          confortMedia={resolveStoryConfortMedia(settings)}
+          terrainMedia={resolveStoryTerrainMedia(settings)}
+          creationImage={resolveStoryCreationImage(settings)}
+          storyCms={parseStoryChaptersCms(settings[STORY_CHAPTERS_CMS_KEY])}
         />
       </SiteMain>
     </>

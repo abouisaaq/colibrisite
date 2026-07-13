@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      // Vidéos Séisme (Admin → Médias) jusqu’à ~80 Mo
+      bodySizeLimit: "85mb",
     },
   },
   images: {

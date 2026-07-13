@@ -7,18 +7,22 @@ import { motion, useInView } from "framer-motion";
 import { Check, Heart, Handshake, ShieldCheck, Sprout, Users, FolderKanban, type LucideIcon } from "lucide-react";
 import { AnimatedCounter } from "@/components/about/animated-counter";
 import { AboutTeamSection } from "@/components/about/about-team-section";
+import { AboutStoryTimeline } from "@/components/about/about-story-timeline";
 import {
   ABOUT_COLIBRI_FABLE,
   ABOUT_COMMITMENTS,
   ABOUT_IMAGES,
-  ABOUT_STORY_DEFAULT,
-  ABOUT_STORY_QUOTE,
   ABOUT_TEAM_INTRO,
   ABOUT_TEAM_MEMBERS,
   ABOUT_VALUES,
   type AboutTeamMember,
   type AboutValue,
 } from "@/lib/about-content";
+import type { AboutStoryMedia } from "@/lib/about-story-chapters";
+import type { StoryPremieresMedia } from "@/lib/about-story-premieres";
+import type { StoryConfortMedia } from "@/lib/about-story-confort";
+import type { StoryCreationAsideImage } from "@/lib/about-story-creation";
+import type { StoryChaptersCms } from "@/lib/about-story-cms";
 import { cn } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -116,6 +120,12 @@ interface AboutPageContentProps {
   partners: string;
   storyImageUrl?: string;
   colibriImageUrl?: string;
+  seismeMedia?: AboutStoryMedia;
+  premieresMedia?: StoryPremieresMedia;
+  confortMedia?: StoryConfortMedia;
+  terrainMedia?: AboutStoryMedia;
+  creationImage?: StoryCreationAsideImage;
+  storyCms?: StoryChaptersCms;
 }
 
 function ColibriWatermark({ className }: { className?: string }) {
@@ -191,11 +201,11 @@ function Reveal({
 }
 
 export function AboutPageContent({
-  mission,
+  mission: _mission,
   teamIntro: teamIntroProp,
   teamMembers,
-  storyTitle,
-  storyQuote,
+  storyTitle: _storyTitle,
+  storyQuote: _storyQuote,
   valuesTitle,
   values,
   colibriTitle,
@@ -208,15 +218,18 @@ export function AboutPageContent({
   volunteers,
   projects,
   partners,
-  storyImageUrl,
+  storyImageUrl: _storyImageUrl,
   colibriImageUrl,
+  seismeMedia,
+  premieresMedia,
+  confortMedia,
+  terrainMedia,
+  creationImage,
+  storyCms,
 }: AboutPageContentProps) {
   const impactRef = useRef<HTMLElement>(null);
   const impactInView = useInView(impactRef, { once: true, amount: 0.2 });
 
-  const storyText = mission?.trim() || ABOUT_STORY_DEFAULT;
-  const resolvedStoryTitle = storyTitle?.trim() || "Des Colibris porteurs d'espoir";
-  const resolvedStoryQuote = storyQuote?.trim() || ABOUT_STORY_QUOTE;
   const resolvedValuesTitle = valuesTitle?.trim() || "Ce qui nous guide chaque jour";
   const resolvedValues = values?.length ? values : [...ABOUT_VALUES];
   const resolvedColibriTitle = colibriTitle?.trim() || "Faire sa part, ensemble";
@@ -230,7 +243,6 @@ export function AboutPageContent({
     "Chaque geste compte. Rejoignez notre communauté de donateurs et de bénévoles pour porter l'espoir aux familles qui en ont le plus besoin.";
   const teamIntro = teamIntroProp?.trim() || ABOUT_TEAM_INTRO;
   const members = teamMembers?.length ? teamMembers : ABOUT_TEAM_MEMBERS;
-  const storyImage = storyImageUrl || ABOUT_IMAGES.story;
   const colibriImage = colibriImageUrl || ABOUT_IMAGES.colibri;
 
   const impactStats = [
@@ -242,42 +254,14 @@ export function AboutPageContent({
 
   return (
     <>
-      {/* Notre histoire */}
-      <section className="bg-white site-section">
-        <div className="site-container grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          <Reveal direction="left">
-            <div className="group relative min-h-[320px] overflow-hidden rounded-[32px] shadow-[0_16px_48px_rgba(15,23,42,0.1)] sm:min-h-[420px]">
-              <Image
-                src={storyImage}
-                alt="Bénévoles en action solidaire"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                priority
-              />
-            </div>
-          </Reveal>
-
-          <Reveal direction="right" delay={0.08}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0d8f5f]">
-              Notre histoire
-            </p>
-            <h2 className="mt-3 font-heading text-[2rem] font-bold leading-tight text-[#111827] sm:text-[2.5rem]">
-              {resolvedStoryTitle}
-            </h2>
-            <div className="mt-6 space-y-4 text-[15px] leading-relaxed text-[#6B7280]">
-              {storyText.split("\n\n").map((paragraph) => (
-                <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-              ))}
-            </div>
-            <blockquote className="mt-8 border-l-4 border-[#4FD1A5] pl-5">
-              <p className="font-heading text-lg italic leading-relaxed text-[#111827] sm:text-xl">
-                « {resolvedStoryQuote} »
-              </p>
-            </blockquote>
-          </Reveal>
-        </div>
-      </section>
+      <AboutStoryTimeline
+        seismeMedia={seismeMedia}
+        premieresMedia={premieresMedia}
+        confortMedia={confortMedia}
+        terrainMedia={terrainMedia}
+        creationImage={creationImage}
+        storyCms={storyCms}
+      />
 
       {/* Nos valeurs */}
       <section className="bg-[#F8FAFC] site-section">

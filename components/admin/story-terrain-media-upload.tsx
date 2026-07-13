@@ -306,7 +306,9 @@ export function StoryTerrainMediaUpload({
               </Button>
             ) : null}
           </div>
-          <p className="mt-2 text-[11px] text-[#9CA3AF]">MP4 / WebM, max. 80 Mo</p>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">
+            MP4 / WebM, max. 80 Mo (idéal &lt; 20 Mo). Sinon utilisez un lien YouTube.
+          </p>
         </div>
       </div>
 

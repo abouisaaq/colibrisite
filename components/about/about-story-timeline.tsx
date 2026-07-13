@@ -18,7 +18,7 @@ import {
   mergeStoryChaptersWithCms,
   type StoryChaptersCms,
 } from "@/lib/about-story-cms";
-import { parseYouTubeVideoId } from "@/lib/about-story-media";
+import { parseYouTubeVideoId, youtubeThumbnailUrl } from "@/lib/about-story-media";
 import { cn } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -81,63 +81,107 @@ function StoryVideo({
   media: AboutStoryMedia;
   label?: string;
 }) {
+  const [playing, setPlaying] = useState(false);
   const youtubeId = media.youtubeUrl
     ? parseYouTubeVideoId(media.youtubeUrl)
     : null;
+  const poster =
+    media.videoPoster ||
+    (youtubeId ? youtubeThumbnailUrl(youtubeId) : undefined);
 
   const frameClass = cn(
     "relative box-border w-full overflow-hidden rounded-[18px] aspect-[9/16]",
-    "border border-[#E5E7EB]/80 bg-black shadow-[0_16px_40px_rgba(15,23,42,0.1)]"
+    "border border-[#E5E7EB]/80 bg-[#0f172a] shadow-[0_16px_40px_rgba(15,23,42,0.1)]"
   );
+
+  if (!youtubeId && !media.videoSrc) {
+    return (
+      <div
+        className={cn(
+          frameClass,
+          "flex flex-col items-center justify-center gap-2.5 border-dashed border-[#0d8f5f]/35 bg-[#0d8f5f]/[0.06] px-3 text-center"
+        )}
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0d8f5f] text-white shadow-lg">
+          <Play className="h-5 w-5 translate-x-0.5" fill="currentColor" aria-hidden />
+        </span>
+        <p className="text-sm font-medium text-[#0d8f5f]">Vidéo à venir</p>
+        <p className="text-[11px] leading-relaxed text-[#6B7280]">
+          Uploadez une vidéo ou un lien YouTube
+          <br />
+          dans Admin → Histoire.
+        </p>
+      </div>
+    );
+  }
+
+  if (!playing) {
+    return (
+      <button
+        type="button"
+        className={cn(
+          frameClass,
+          "group cursor-pointer p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d8f5f] focus-visible:ring-offset-2"
+        )}
+        onClick={() => setPlaying(true)}
+        aria-label={`Lire la vidéo — ${label}`}
+      >
+        {poster ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={poster}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : media.videoSrc ? (
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={`${media.videoSrc}#t=0.1`}
+            muted
+            playsInline
+            preload="metadata"
+            aria-hidden
+          />
+        ) : (
+          <span className="absolute inset-0 bg-[#1e293b]" aria-hidden />
+        )}
+        <span className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/95 text-[#0d8f5f] shadow-lg transition duration-300 group-hover:scale-105">
+            <Play className="h-6 w-6 translate-x-0.5" fill="currentColor" aria-hidden />
+          </span>
+        </span>
+      </button>
+    );
+  }
 
   if (youtubeId) {
     return (
       <div className={frameClass}>
         <iframe
           title={`${label} — YouTube`}
-          src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`}
           className="absolute inset-0 h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
-          loading="lazy"
           referrerPolicy="strict-origin-when-cross-origin"
         />
       </div>
     );
   }
 
-  if (media.videoSrc) {
-    return (
-      <div className={frameClass}>
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          controls
-          playsInline
-          poster={media.videoPoster}
-          preload="metadata"
-        >
-          <source src={media.videoSrc} />
-        </video>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className={cn(
-        frameClass,
-        "flex flex-col items-center justify-center gap-2.5 border-dashed border-[#0d8f5f]/35 bg-[#0d8f5f]/[0.06] px-3 text-center"
-      )}
-    >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0d8f5f] text-white shadow-lg">
-        <Play className="h-5 w-5 translate-x-0.5" fill="currentColor" aria-hidden />
-      </span>
-      <p className="text-sm font-medium text-[#0d8f5f]">Vidéo à venir</p>
-      <p className="text-[11px] leading-relaxed text-[#6B7280]">
-        Uploadez une vidéo ou un lien YouTube
-        <br />
-        dans Admin → Médias.
-      </p>
+    <div className={frameClass}>
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        controls
+        playsInline
+        autoPlay
+        poster={poster}
+        preload="metadata"
+      >
+        <source src={media.videoSrc} />
+      </video>
     </div>
   );
 }

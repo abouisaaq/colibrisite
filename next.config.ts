@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "*.paypal.com" },
       { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "i.ytimg.com" },
+      { protocol: "https", hostname: "img.youtube.com" },
       // Convex storage : host du type xxx.eu-west-1.convex.cloud
       { protocol: "https", hostname: "**.convex.cloud" },
       { protocol: "https", hostname: "**.convex.site" },

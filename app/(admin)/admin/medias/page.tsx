@@ -81,6 +81,7 @@ export default async function AdminMediasPage() {
               photo3: settings[STORY_SEISME_SETTING_KEYS.photo3] ?? "",
             }}
             videoUrl={settings[STORY_SEISME_SETTING_KEYS.videoFile]}
+            videoPosterUrl={settings[STORY_SEISME_SETTING_KEYS.videoPoster]}
             youtubeUrl={settings[STORY_SEISME_SETTING_KEYS.youtubeUrl]}
           />
           <StoryPremieresMediaUpload
@@ -110,6 +111,7 @@ export default async function AdminMediasPage() {
               photo3: settings[STORY_TERRAIN_SETTING_KEYS.photo3] ?? "",
             }}
             videoUrl={settings[STORY_TERRAIN_SETTING_KEYS.videoFile]}
+            videoPosterUrl={settings[STORY_TERRAIN_SETTING_KEYS.videoPoster]}
             youtubeUrl={settings[STORY_TERRAIN_SETTING_KEYS.youtubeUrl]}
           />
           <StoryCreationMediaUpload

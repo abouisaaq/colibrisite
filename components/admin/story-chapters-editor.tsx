@@ -22,6 +22,7 @@ type MediaProps = {
   seisme: {
     photos: { photo1: string; photo2: string; photo3: string };
     videoUrl?: string;
+    videoPosterUrl?: string;
     youtubeUrl?: string;
   };
   premieres: Record<string, string>;
@@ -29,6 +30,7 @@ type MediaProps = {
   terrain: {
     photos: { photo1: string; photo2: string; photo3: string };
     videoUrl?: string;
+    videoPosterUrl?: string;
     youtubeUrl?: string;
   };
   creationImageUrl?: string;
@@ -169,6 +171,7 @@ export function StoryChaptersEditor({
           <StorySeismeMediaUpload
             photoUrls={media.seisme.photos}
             videoUrl={media.seisme.videoUrl}
+            videoPosterUrl={media.seisme.videoPosterUrl}
             youtubeUrl={media.seisme.youtubeUrl}
           />
         </TabsContent>
@@ -278,6 +281,7 @@ export function StoryChaptersEditor({
           <StoryTerrainMediaUpload
             photoUrls={media.terrain.photos}
             videoUrl={media.terrain.videoUrl}
+            videoPosterUrl={media.terrain.videoPosterUrl}
             youtubeUrl={media.terrain.youtubeUrl}
           />
         </TabsContent>

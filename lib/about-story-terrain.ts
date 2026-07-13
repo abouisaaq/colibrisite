@@ -4,12 +4,17 @@
  */
 
 import type { AboutStoryMedia, AboutStoryPhotos } from "@/lib/about-story-chapters";
+import {
+  parseYouTubeVideoId,
+  youtubeThumbnailUrl,
+} from "@/lib/about-story-media";
 
 export const STORY_TERRAIN_SETTING_KEYS = {
   photo1: "story_terrain_photo_1",
   photo2: "story_terrain_photo_2",
   photo3: "story_terrain_photo_3",
   videoFile: "story_terrain_video_file",
+  videoPoster: "story_terrain_video_poster",
   youtubeUrl: "story_terrain_youtube_url",
 } as const;
 
@@ -47,6 +52,9 @@ export function resolveStoryTerrainMedia(
     settings[STORY_TERRAIN_SETTING_KEYS.youtubeUrl]?.trim() || undefined;
   const videoSrc =
     settings[STORY_TERRAIN_SETTING_KEYS.videoFile]?.trim() || undefined;
+  const customPoster =
+    settings[STORY_TERRAIN_SETTING_KEYS.videoPoster]?.trim() || undefined;
+  const youtubeId = youtubeUrl ? parseYouTubeVideoId(youtubeUrl) : null;
 
   const photos: AboutStoryPhotos = {
     main:
@@ -63,5 +71,12 @@ export function resolveStoryTerrainMedia(
     rightAlt: PHOTO_ALTS.photo3,
   };
 
-  return { youtubeUrl, videoSrc, photos };
+  return {
+    youtubeUrl,
+    videoSrc,
+    videoPoster:
+      customPoster ||
+      (youtubeId ? youtubeThumbnailUrl(youtubeId) : undefined),
+    photos,
+  };
 }

@@ -695,11 +695,31 @@ export async function uploadStorySeismeVideo(meta: UploadedMediaMeta) {
   return media.url;
 }
 
+export async function uploadStorySeismeVideoPoster(formData: FormData) {
+  await requireAdmin();
+  const media = await uploadFile(formData);
+  await upsertSetting(STORY_SEISME_SETTING_KEYS.videoPoster, media.url);
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
+  return media.url;
+}
+
+export async function removeStorySeismeVideoPoster() {
+  await requireAdmin();
+  await upsertSetting(STORY_SEISME_SETTING_KEYS.videoPoster, "");
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
+}
+
 export async function removeStorySeismeVideo() {
   await requireAdmin();
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoFile, "");
+  await upsertSetting(STORY_SEISME_SETTING_KEYS.videoPoster, "");
   revalidatePath("/a-propos");
   revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
 }
 
 export async function saveStorySeismeYoutubeUrl(url: string) {
@@ -793,11 +813,31 @@ export async function uploadStoryTerrainVideo(meta: UploadedMediaMeta) {
   return media.url;
 }
 
+export async function uploadStoryTerrainVideoPoster(formData: FormData) {
+  await requireAdmin();
+  const media = await uploadFile(formData);
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoPoster, media.url);
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
+  return media.url;
+}
+
+export async function removeStoryTerrainVideoPoster() {
+  await requireAdmin();
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoPoster, "");
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
+}
+
 export async function removeStoryTerrainVideo() {
   await requireAdmin();
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoFile, "");
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoPoster, "");
   revalidatePath("/a-propos");
   revalidatePath("/admin/medias");
+  revalidatePath("/admin/histoire");
 }
 
 export async function saveStoryTerrainYoutubeUrl(url: string) {

@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import {
   removeStoryTerrainPhoto,
   removeStoryTerrainVideo,
+  removeStoryTerrainVideoPoster,
   saveStoryTerrainYoutubeUrl,
   uploadStoryTerrainPhoto,
   uploadStoryTerrainVideo,
+  uploadStoryTerrainVideoPoster,
 } from "@/actions/admin";
 import {
   DEFAULT_STORY_TERRAIN_PHOTOS,
@@ -19,6 +21,7 @@ import {
 } from "@/lib/about-story-terrain";
 import { parseYouTubeVideoId } from "@/lib/about-story-media";
 import { uploadVideoToConvex } from "@/lib/client-video-upload";
+import { extractVideoPosterFrame } from "@/lib/extract-video-poster";
 import { toast } from "sonner";
 
 const PHOTO_SLOTS: {
@@ -33,6 +36,7 @@ const PHOTO_SLOTS: {
 interface StoryTerrainMediaUploadProps {
   photoUrls: Record<StoryTerrainPhotoSlot, string>;
   videoUrl?: string;
+  videoPosterUrl?: string;
   youtubeUrl?: string;
 }
 
@@ -155,13 +159,24 @@ function PhotoSlot({
 export function StoryTerrainMediaUpload({
   photoUrls,
   videoUrl = "",
+  videoPosterUrl = "",
   youtubeUrl = "",
 }: StoryTerrainMediaUploadProps) {
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const posterInputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState(photoUrls);
   const [video, setVideo] = useState(videoUrl);
+  const [poster, setPoster] = useState(videoPosterUrl);
   const [youtube, setYoutube] = useState(youtubeUrl);
   const [isPending, startTransition] = useTransition();
+
+  async function uploadPosterFromFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const url = await uploadStoryTerrainVideoPoster(formData);
+    setPoster(url);
+    return url;
+  }
 
   function handleVideoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -172,7 +187,14 @@ export function StoryTerrainMediaUpload({
         const meta = await uploadVideoToConvex(file);
         const url = await uploadStoryTerrainVideo(meta);
         setVideo(url);
-        toast.success("Vidéo enregistrée");
+
+        const frame = await extractVideoPosterFrame(file);
+        if (frame) {
+          await uploadPosterFromFile(frame);
+          toast.success("Vidéo et miniature enregistrées");
+        } else {
+          toast.success("Vidéo enregistrée — ajoutez une miniature manuellement");
+        }
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Erreur lors du téléversement"
@@ -183,13 +205,48 @@ export function StoryTerrainMediaUpload({
     });
   }
 
+  function handlePosterChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        await uploadPosterFromFile(file);
+        toast.success("Miniature enregistrée");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Erreur lors du téléversement"
+        );
+      } finally {
+        if (posterInputRef.current) posterInputRef.current.value = "";
+      }
+    });
+  }
+
   function handleRemoveVideo() {
     startTransition(async () => {
       try {
         await removeStoryTerrainVideo();
         setVideo("");
+        setPoster("");
         if (videoInputRef.current) videoInputRef.current.value = "";
         toast.success("Vidéo supprimée");
+      } catch {
+        toast.error("Erreur");
+      }
+    });
+  }
+
+  function handleRemovePoster() {
+    startTransition(async () => {
+      try {
+        await removeStoryTerrainVideoPoster();
+        setPoster("");
+        toast.success("Miniature supprimée");
       } catch {
         toast.error("Erreur");
       }
@@ -220,7 +277,8 @@ export function StoryTerrainMediaUpload({
       <div className="mb-5">
         <h4 className="font-semibold text-[#111827]">Histoire — Terrain de foot</h4>
         <p className="mt-1 text-sm text-[#6B7280]">
-          3 photos empilées à gauche, texte au centre, vidéo à droite (upload ou YouTube).
+          3 photos à gauche et vidéo à droite (upload ou YouTube), sur la
+          page À propos.
         </p>
       </div>
 
@@ -229,7 +287,7 @@ export function StoryTerrainMediaUpload({
           <h5 className="text-sm font-semibold text-[#111827]">Vidéo</h5>
           <p className="mt-0.5 text-xs text-[#6B7280]">
             Un lien YouTube est prioritaire s’il est renseigné. Sinon, la vidéo
-            uploadée est utilisée.
+            uploadée est utilisée. Une miniature s’affiche avant la lecture.
           </p>
         </div>
 
@@ -261,6 +319,7 @@ export function StoryTerrainMediaUpload({
               <video
                 src={video}
                 controls
+                poster={poster || undefined}
                 className="aspect-video max-h-48 w-full object-contain"
                 preload="metadata"
               />
@@ -308,6 +367,61 @@ export function StoryTerrainMediaUpload({
           </div>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">
             MP4 / WebM, max. 80 Mo (idéal &lt; 20 Mo). Sinon utilisez un lien YouTube.
+          </p>
+        </div>
+
+        <div className="border-t border-[#E5E7EB] pt-4">
+          <p className="mb-2 text-xs font-medium text-[#6B7280]">
+            Miniature (affichée avant la lecture)
+          </p>
+          {poster ? (
+            <div className="relative mb-3 aspect-video max-h-40 overflow-hidden rounded-xl border border-[#E5E7EB]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={poster} alt="Miniature vidéo" className="h-full w-full object-cover" />
+            </div>
+          ) : (
+            <div className="mb-3 flex aspect-video max-h-32 items-center justify-center rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] text-[#94A3B8]">
+              <div className="flex flex-col items-center gap-2">
+                <ImageIcon className="h-6 w-6" />
+                <span className="text-xs">Aucune miniature</span>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={posterInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePosterChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isPending}
+              onClick={() => posterInputRef.current?.click()}
+              className="gap-1.5"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              {poster ? "Changer la miniature" : "Téléverser une miniature"}
+            </Button>
+            {poster ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={isPending}
+                onClick={handleRemovePoster}
+                className="gap-1.5 text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Supprimer
+              </Button>
+            ) : null}
+          </div>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">
+            Générée automatiquement à l’upload de la vidéo, ou choisissez une image.
           </p>
         </div>
       </div>

@@ -10,6 +10,7 @@ export const STORY_SEISME_SETTING_KEYS = {
   photo2: "story_seisme_photo_2",
   photo3: "story_seisme_photo_3",
   videoFile: "story_seisme_video_file",
+  videoPoster: "story_seisme_video_poster",
   youtubeUrl: "story_seisme_youtube_url",
 } as const;
 
@@ -77,6 +78,11 @@ export function parseYouTubeVideoId(input: string): string | null {
   return null;
 }
 
+/** Miniature YouTube (hq). */
+export function youtubeThumbnailUrl(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+}
+
 export function resolveStorySeismePhotos(
   settings: Record<string, string | undefined>
 ): AboutStoryPhotos {
@@ -105,10 +111,16 @@ export function resolveStorySeismeMedia(
 ): AboutStoryMedia {
   const youtubeUrl = settings[STORY_SEISME_SETTING_KEYS.youtubeUrl]?.trim() || undefined;
   const videoSrc = settings[STORY_SEISME_SETTING_KEYS.videoFile]?.trim() || undefined;
+  const customPoster =
+    settings[STORY_SEISME_SETTING_KEYS.videoPoster]?.trim() || undefined;
+  const youtubeId = youtubeUrl ? parseYouTubeVideoId(youtubeUrl) : null;
 
   return {
     youtubeUrl,
     videoSrc,
+    videoPoster:
+      customPoster ||
+      (youtubeId ? youtubeThumbnailUrl(youtubeId) : undefined),
     photos: resolveStorySeismePhotos(settings),
   };
 }

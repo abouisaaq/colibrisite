@@ -31,7 +31,7 @@ export default async function AlbumPage({ params }: Props) {
       <PageHero
         eyebrow="GALERIE"
         title={album.title}
-        description={album.description ?? "Découvrez les images de cet album."}
+        description={album.description ?? "Découvrez les photos et vidéos de cet album."}
         breadcrumbs={[
           { label: "Accueil", href: "/" },
           { label: "Galerie", href: "/galerie" },
@@ -52,12 +52,18 @@ export default async function AlbumPage({ params }: Props) {
                 alt?: string;
                 order: number;
                 _creationTime: number;
+                kind?: "photo" | "video";
+                mimeType?: string;
+                posterUrl?: string;
               }) => ({
                 id: image._id,
                 url: image.url,
                 alt: image.alt ?? null,
                 order: image.order,
                 createdAt: new Date(image._creationTime).toISOString(),
+                kind: image.kind ?? null,
+                mimeType: image.mimeType ?? null,
+                posterUrl: image.posterUrl ?? null,
               })
             ),
           }}

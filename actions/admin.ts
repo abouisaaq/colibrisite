@@ -55,6 +55,7 @@ import {
   type StoryChaptersCms,
   getDefaultStoryChaptersCms,
 } from "@/lib/about-story-cms";
+import { HOME_SPOTLIGHT_SETTING_KEYS } from "@/lib/home-spotlight";
 
 function client() {
   return getConvexClient();
@@ -328,15 +329,53 @@ export async function deleteAlbum(id: string) {
   revalidatePath("/admin/galerie");
 }
 
-export async function addGalleryImage(albumId: string, url: string, alt?: string) {
+export async function addGalleryImage(
+  albumId: string,
+  url: string,
+  alt?: string,
+  options?: { kind?: "photo" | "video"; mimeType?: string; posterUrl?: string; storageId?: string }
+) {
   await requireAuth();
   await client().mutation(api.gallery.addImage, {
     albumId: albumId as Id<"galleryAlbums">,
     url,
     alt,
+    kind: options?.kind ?? "photo",
+    mimeType: options?.mimeType,
+    posterUrl: options?.posterUrl,
+    storageId: options?.storageId
+      ? (options.storageId as Id<"_storage">)
+      : undefined,
   });
   revalidatePath("/galerie");
+  revalidatePath("/");
+  revalidatePath(`/admin/galerie/${albumId}`);
   revalidatePath("/admin/galerie");
+}
+
+/** Ajoute une vidéo déjà uploadée sur Convex Storage à un album. */
+export async function addGalleryVideo(
+  albumId: string,
+  meta: UploadedMediaMeta,
+  options?: { alt?: string; posterUrl?: string }
+) {
+  await requireAuth();
+  assertVideoMeta(meta);
+  const media = await finalizeUploadedMedia(meta);
+  await client().mutation(api.gallery.addImage, {
+    albumId: albumId as Id<"galleryAlbums">,
+    url: media.url,
+    alt: options?.alt,
+    kind: "video",
+    mimeType: meta.mimeType,
+    posterUrl: options?.posterUrl,
+    storageId: meta.storageId as Id<"_storage">,
+  });
+  revalidatePath("/galerie");
+  revalidatePath("/");
+  revalidatePath(`/admin/galerie/${albumId}`);
+  revalidatePath("/admin/galerie");
+  return media.url;
 }
 
 export async function deleteGalleryImage(id: string) {
@@ -345,6 +384,7 @@ export async function deleteGalleryImage(id: string) {
     id: id as Id<"galleryImages">,
   });
   revalidatePath("/galerie");
+  revalidatePath("/");
   revalidatePath("/admin/galerie");
 }
 
@@ -866,6 +906,103 @@ export async function removeStoryCreationImage() {
   revalidatePath("/a-propos");
   revalidatePath("/admin/medias");
   revalidatePath("/admin/histoire");
+}
+
+export async function uploadHomeSpotlightVideo(meta: UploadedMediaMeta) {
+  await requireAdmin();
+  assertVideoMeta(meta);
+  const media = await finalizeUploadedMedia(meta);
+  await upsertSetting(HOME_SPOTLIGHT_SETTING_KEYS.videoFile, media.url);
+  revalidatePath("/");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/videos-accueil");
+  return media.url;
+}
+
+export async function uploadHomeSpotlightVideoPoster(formData: FormData) {
+  await requireAdmin();
+  const media = await uploadFile(formData);
+  await upsertSetting(HOME_SPOTLIGHT_SETTING_KEYS.videoPoster, media.url);
+  revalidatePath("/");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/videos-accueil");
+  return media.url;
+}
+
+export async function removeHomeSpotlightVideoPoster() {
+  await requireAdmin();
+  await upsertSetting(HOME_SPOTLIGHT_SETTING_KEYS.videoPoster, "");
+  revalidatePath("/");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/videos-accueil");
+}
+
+export async function removeHomeSpotlightVideo() {
+  await requireAdmin();
+  await upsertSetting(HOME_SPOTLIGHT_SETTING_KEYS.videoFile, "");
+  await upsertSetting(HOME_SPOTLIGHT_SETTING_KEYS.videoPoster, "");
+  revalidatePath("/");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/videos-accueil");
+}
+
+export async function saveHomeSpotlightYoutubeUrl(url: string) {
+  await requireAdmin();
+  const trimmed = url.trim();
+  if (trimmed && !parseYouTubeVideoId(trimmed)) {
+    throw new Error("Lien YouTube invalide");
+  }
+  await upsertSetting(HOME_SPOTLIGHT_SETTING_KEYS.youtubeUrl, trimmed);
+  revalidatePath("/");
+  revalidatePath("/admin/medias");
+  revalidatePath("/admin/videos-accueil");
+}
+
+/** Ajoute une vidéo uploadée à la bibliothèque Accueil. */
+export async function addHomeSpotlightVideo(
+  meta: UploadedMediaMeta,
+  options?: { title?: string; posterUrl?: string }
+) {
+  await requireAdmin();
+  assertVideoMeta(meta);
+  const media = await finalizeUploadedMedia(meta);
+  await client().mutation(api.homeSpotlight.add, {
+    title: options?.title,
+    url: media.url,
+    storageId: meta.storageId as Id<"_storage">,
+    mimeType: meta.mimeType,
+    posterUrl: options?.posterUrl,
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/videos-accueil");
+  return media.url;
+}
+
+/** Ajoute un lien YouTube à la bibliothèque Accueil. */
+export async function addHomeSpotlightYoutubeVideo(input: {
+  youtubeUrl: string;
+  title?: string;
+}) {
+  await requireAdmin();
+  const trimmed = input.youtubeUrl.trim();
+  if (!parseYouTubeVideoId(trimmed)) {
+    throw new Error("Lien YouTube invalide");
+  }
+  await client().mutation(api.homeSpotlight.add, {
+    title: input.title,
+    youtubeUrl: trimmed,
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/videos-accueil");
+}
+
+export async function deleteHomeSpotlightVideo(id: string) {
+  await requireAdmin();
+  await client().mutation(api.homeSpotlight.remove, {
+    id: id as Id<"homeSpotlightVideos">,
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/videos-accueil");
 }
 
 export async function saveStoryChaptersCms(data: StoryChaptersCms) {

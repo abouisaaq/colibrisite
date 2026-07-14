@@ -87,6 +87,10 @@ export async function fetchGalleryAlbumById(id: string) {
   });
 }
 
+export async function fetchHomeSpotlightVideos() {
+  return await getConvexClient().query(api.homeSpotlight.list, {});
+}
+
 export async function fetchEvents(opts?: { status?: string; limit?: number }) {
   return await getConvexClient().query(api.events.listEvents, {
     status: opts?.status,

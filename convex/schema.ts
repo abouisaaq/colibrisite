@@ -86,7 +86,24 @@ export default defineSchema({
     order: v.number(),
     albumId: v.id("galleryAlbums"),
     storageId: v.optional(v.id("_storage")),
+    /** photo (défaut) ou video */
+    kind: v.optional(v.union(v.literal("photo"), v.literal("video"))),
+    mimeType: v.optional(v.string()),
+    posterUrl: v.optional(v.string()),
   }).index("by_album", ["albumId"]),
+
+  /** Vidéos Accueil (spotlight) — pool CMS dédié, 2 tirées au hasard sur le site */
+  homeSpotlightVideos: defineTable({
+    title: v.optional(v.string()),
+    /** URL fichier uploadé (Convex Storage) */
+    url: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+    mimeType: v.optional(v.string()),
+    posterUrl: v.optional(v.string()),
+    /** Lien YouTube alternatif */
+    youtubeUrl: v.optional(v.string()),
+    order: v.number(),
+  }).index("by_order", ["order"]),
 
   donations: defineTable({
     amount: v.number(),

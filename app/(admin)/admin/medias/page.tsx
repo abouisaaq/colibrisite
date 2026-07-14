@@ -44,7 +44,7 @@ export default async function AdminMediasPage() {
       <AdminPageHeader
         eyebrow="Contenu"
         title="Médias"
-        description="Gérez le logo, les images d'accueil, les dons, l'équipe et la bibliothèque"
+        description="Gérez le logo, les images d’accueil, les dons, l’équipe et la bibliothèque. Les vidéos Accueil sont dans le menu « Vidéos Accueil »."
       />
 
       <AdminPanel title="Identité visuelle" padded>

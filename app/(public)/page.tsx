@@ -1,4 +1,4 @@
-import { fetchHomePage } from "@/lib/convex-data";
+import { fetchHomePage, fetchGalleryAlbums } from "@/lib/convex-data";
 import { parseSiteLogoHeight } from "@/lib/logo-size";
 import { resolveMissionImages } from "@/lib/mission-images";
 import { resolveSitePageImage } from "@/lib/site-images";
@@ -11,14 +11,108 @@ import { NewsEventsSection } from "@/components/home/news-events-section";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { CtaSection } from "@/components/home/cta-section";
 import { PartnersSection } from "@/components/home/partners-section";
+import { GallerySpotlightSection } from "@/components/home/gallery-spotlight-section";
+import { resolveHomeSpotlightMedia } from "@/lib/home-spotlight";
+import { guessGalleryKind } from "@/lib/gallery-media";
 
 export default async function HomePage() {
-  const { settings, actions, articles, events, testimonials, partners } =
-    await fetchHomePage();
+  const {
+    settings,
+    actions,
+    articles,
+    events,
+    testimonials,
+    partners,
+    galleryPhotos,
+    galleryVideos,
+    homeSpotlightVideos,
+  } = await fetchHomePage();
 
   const heroImage = settings.hero_image || "/hero/hero-main.jpg";
   const missionImages = resolveMissionImages(settings);
   const donationImage = resolveSitePageImage(settings, "donation");
+  const spotlightMedia = resolveHomeSpotlightMedia(settings);
+
+  let spotlightPhotos: { id: string; url: string; alt: string }[] = (
+    galleryPhotos ?? []
+  ).map((photo: { id: string; url: string; alt?: string }) => ({
+    id: photo.id,
+    url: photo.url,
+    alt: photo.alt ?? "",
+  }));
+
+  let spotlightVideos: {
+    id: string;
+    url: string;
+    alt: string;
+    posterUrl?: string;
+    youtubeUrl?: string;
+  }[] = (homeSpotlightVideos ?? galleryVideos ?? []).map(
+    (video: {
+      id: string;
+      url: string;
+      alt?: string;
+      posterUrl?: string;
+      youtubeUrl?: string;
+    }) => ({
+      id: video.id,
+      url: video.url ?? "",
+      alt: video.alt ?? "",
+      posterUrl: video.posterUrl,
+      youtubeUrl: video.youtubeUrl,
+    })
+  );
+
+  // Repli : albums si la query home n’a rien renvoyé
+  if (spotlightPhotos.length === 0 || spotlightVideos.length === 0) {
+    const albums = await fetchGalleryAlbums();
+    const photoByUrl = new Map<string, { id: string; url: string; alt: string }>();
+    const videoByUrl = new Map<
+      string,
+      { id: string; url: string; alt: string; posterUrl?: string }
+    >();
+
+    for (const album of albums) {
+      const albumId = String(album.id ?? album._id);
+      const title = album.title ?? "Galerie";
+      if (spotlightPhotos.length === 0 && album.coverUrl?.trim()) {
+        photoByUrl.set(album.coverUrl.trim(), {
+          id: `cover-${albumId}`,
+          url: album.coverUrl.trim(),
+          alt: title,
+        });
+      }
+      for (const image of album.images ?? []) {
+        if (!image.url?.trim()) continue;
+        const kind = guessGalleryKind({
+          kind: image.kind,
+          mimeType: image.mimeType,
+          url: image.url,
+        });
+        if (kind === "video") {
+          if (spotlightVideos.length > 0) continue;
+          videoByUrl.set(image.url.trim(), {
+            id: String(image._id),
+            url: image.url.trim(),
+            alt: image.alt?.trim() || title,
+            posterUrl: image.posterUrl?.trim() || undefined,
+          });
+        } else if (spotlightPhotos.length === 0) {
+          photoByUrl.set(image.url.trim(), {
+            id: String(image._id),
+            url: image.url.trim(),
+            alt: image.alt?.trim() || title,
+          });
+        }
+      }
+    }
+    if (spotlightPhotos.length === 0) {
+      spotlightPhotos = [...photoByUrl.values()];
+    }
+    if (spotlightVideos.length === 0) {
+      spotlightVideos = [...videoByUrl.values()];
+    }
+  }
 
   return (
     <>
@@ -142,6 +236,11 @@ export default async function HomePage() {
         eyebrow={settings.testimonials_eyebrow}
         title={settings.testimonials_title}
         subtitle={settings.testimonials_subtitle}
+      />
+      <GallerySpotlightSection
+        media={spotlightMedia}
+        photos={spotlightPhotos}
+        videos={spotlightVideos}
       />
       <NewsletterSection
         title={settings.newsletter_title ?? "Recevez nos nouveautés sur WhatsApp"}

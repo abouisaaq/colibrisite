@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ImageIcon, Trash2, Upload } from "lucide-react";
+import { Film, ImageIcon, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,9 +14,22 @@ import {
   createAlbum,
   updateAlbum,
   addGalleryImage,
+  addGalleryVideo,
   deleteGalleryImage,
   uploadMedia,
 } from "@/actions/admin";
+import { uploadVideoToConvex } from "@/lib/client-video-upload";
+import { extractVideoPosterFrame } from "@/lib/extract-video-poster";
+import { isGalleryVideo } from "@/lib/gallery-media";
+
+interface AlbumMediaItem {
+  id: string;
+  url: string;
+  alt: string | null;
+  kind?: "photo" | "video" | null;
+  mimeType?: string | null;
+  posterUrl?: string | null;
+}
 
 interface AlbumData {
   id?: string;
@@ -24,24 +37,31 @@ interface AlbumData {
   slug: string;
   description?: string | null;
   coverUrl?: string | null;
-  images?: { id: string; url: string; alt: string | null }[];
+  images?: AlbumMediaItem[];
 }
 
 export function AlbumForm({ album }: { album?: AlbumData }) {
   const router = useRouter();
   const coverInputRef = useRef<HTMLInputElement>(null);
   const photosInputRef = useRef<HTMLInputElement>(null);
+  const videosInputRef = useRef<HTMLInputElement>(null);
   const [coverUrl, setCoverUrl] = useState(album?.coverUrl ?? "");
   const [isPending, startTransition] = useTransition();
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [isUploadingVideos, setIsUploadingVideos] = useState(false);
+
+  const photos = (album?.images ?? []).filter((item) => !isGalleryVideo(item));
+  const videos = (album?.images ?? []).filter((item) => isGalleryVideo(item));
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data = {
       title: formData.get("title") as string,
-      slug: (formData.get("slug") as string) || slugify(formData.get("title") as string),
+      slug:
+        (formData.get("slug") as string) ||
+        slugify(formData.get("title") as string),
       description: (formData.get("description") as string) || undefined,
       coverUrl: coverUrl.trim() || undefined,
     };
@@ -54,7 +74,7 @@ export function AlbumForm({ album }: { album?: AlbumData }) {
           router.refresh();
         } else {
           const created = await createAlbum(data);
-          toast.success("Album créé — vous pouvez maintenant ajouter des photos");
+          toast.success("Album créé — vous pouvez maintenant ajouter des médias");
           router.push(`/admin/galerie/${created.id}`);
           router.refresh();
         }
@@ -106,12 +126,13 @@ export function AlbumForm({ album }: { album?: AlbumData }) {
         let added = 0;
         for (const file of Array.from(files)) {
           const url = await uploadImageFile(file);
-          await addGalleryImage(album.id!, url, file.name);
+          await addGalleryImage(album.id!, url, file.name, {
+            kind: "photo",
+            mimeType: file.type,
+          });
           added += 1;
         }
-        toast.success(
-          added > 1 ? `${added} photos ajoutées` : "Photo ajoutée"
-        );
+        toast.success(added > 1 ? `${added} photos ajoutées` : "Photo ajoutée");
         router.refresh();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Erreur téléversement");
@@ -120,6 +141,46 @@ export function AlbumForm({ album }: { album?: AlbumData }) {
         if (photosInputRef.current) photosInputRef.current.value = "";
       }
     })();
+  }
+
+  function handleVideosUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files?.length || !album?.id) return;
+
+    setIsUploadingVideos(true);
+    void (async () => {
+      try {
+        let added = 0;
+        for (const file of Array.from(files)) {
+          const meta = await uploadVideoToConvex(file);
+          let posterUrl: string | undefined;
+          const frame = await extractVideoPosterFrame(file);
+          if (frame) {
+            posterUrl = await uploadImageFile(frame);
+          }
+          await addGalleryVideo(album.id!, meta, {
+            alt: file.name,
+            posterUrl,
+          });
+          added += 1;
+        }
+        toast.success(added > 1 ? `${added} vidéos ajoutées` : "Vidéo ajoutée");
+        router.refresh();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Erreur téléversement");
+      } finally {
+        setIsUploadingVideos(false);
+        if (videosInputRef.current) videosInputRef.current.value = "";
+      }
+    })();
+  }
+
+  function handleDelete(id: string, label: string) {
+    startTransition(async () => {
+      await deleteGalleryImage(id);
+      toast.success(`${label} supprimée`);
+      router.refresh();
+    });
   }
 
   return (
@@ -229,72 +290,135 @@ export function AlbumForm({ album }: { album?: AlbumData }) {
       </form>
 
       {album?.id ? (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="font-semibold text-colibri-blue">Photos de l&apos;album</h3>
-            <div>
-              <input
-                ref={photosInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handlePhotosUpload}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isUploadingPhotos || isPending}
-                onClick={() => photosInputRef.current?.click()}
-                className="gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                {isUploadingPhotos ? "Téléversement…" : "Téléverser des photos"}
-              </Button>
+        <>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold text-colibri-blue">Photos</h3>
+              <div>
+                <input
+                  ref={photosInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handlePhotosUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploadingPhotos || isPending}
+                  onClick={() => photosInputRef.current?.click()}
+                  className="gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  {isUploadingPhotos ? "Téléversement…" : "Téléverser des photos"}
+                </Button>
+              </div>
             </div>
+
+            {photos.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {photos.map((img) => (
+                  <div
+                    key={img.id}
+                    className="group relative aspect-square overflow-hidden rounded-xl border border-[#E8EDF3]"
+                  >
+                    <Image
+                      src={img.url}
+                      alt={img.alt ?? ""}
+                      fill
+                      className="object-cover"
+                      sizes="200px"
+                    />
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => handleDelete(img.id, "Photo")}
+                      className="absolute right-2 top-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label="Supprimer la photo"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 py-10 text-center text-sm text-[#94A3B8]">
+                Aucune photo. Cliquez sur « Téléverser des photos ».
+              </div>
+            )}
           </div>
 
-          {album.images && album.images.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {album.images.map((img) => (
-                <div
-                  key={img.id}
-                  className="group relative aspect-square overflow-hidden rounded-xl border border-[#E8EDF3]"
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold text-colibri-blue">Vidéos</h3>
+              <div>
+                <input
+                  ref={videosInputRef}
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  multiple
+                  className="hidden"
+                  onChange={handleVideosUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploadingVideos || isPending}
+                  onClick={() => videosInputRef.current?.click()}
+                  className="gap-2"
                 >
-                  <Image
-                    src={img.url}
-                    alt={img.alt ?? ""}
-                    fill
-                    className="object-cover"
-                    sizes="200px"
-                  />
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() =>
-                      startTransition(async () => {
-                        await deleteGalleryImage(img.id);
-                        toast.success("Photo supprimée");
-                        router.refresh();
-                      })
-                    }
-                    className="absolute right-2 top-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                    aria-label="Supprimer la photo"
+                  <Upload className="h-4 w-4" />
+                  {isUploadingVideos ? "Téléversement…" : "Téléverser des vidéos"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-[#94A3B8]">
+              MP4 / WebM, max. 80 Mo (idéal &lt; 20 Mo). Affichées aléatoirement sur
+              l’accueil (2 vidéos).
+            </p>
+
+            {videos.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {videos.map((video) => (
+                  <div
+                    key={video.id}
+                    className="group relative overflow-hidden rounded-xl border border-[#E8EDF3] bg-black"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 py-10 text-center text-sm text-[#94A3B8]">
-              Aucune photo pour le moment. Cliquez sur « Téléverser des photos ».
-            </div>
-          )}
-        </div>
+                    <video
+                      src={video.url}
+                      poster={video.posterUrl || undefined}
+                      controls
+                      className="aspect-video w-full object-contain"
+                      preload="metadata"
+                    />
+                    <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-black/55 px-2 py-1 text-[11px] text-white">
+                      <Film className="h-3 w-3" />
+                      Vidéo
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => handleDelete(video.id, "Vidéo")}
+                      className="absolute right-2 top-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label="Supprimer la vidéo"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 py-10 text-center text-sm text-[#94A3B8]">
+                Aucune vidéo. Cliquez sur « Téléverser des vidéos ».
+              </div>
+            )}
+          </div>
+        </>
       ) : (
         <p className="rounded-xl border border-[#E8EDF3] bg-[#F8FAFC] px-4 py-3 text-sm text-[#64748B]">
-          Enregistrez d&apos;abord l&apos;album pour pouvoir y téléverser des photos.
+          Enregistrez d&apos;abord l&apos;album pour pouvoir y téléverser photos et
+          vidéos.
         </p>
       )}
     </div>

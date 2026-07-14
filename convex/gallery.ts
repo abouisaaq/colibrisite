@@ -98,6 +98,9 @@ export const addImage = bridgedMutation({
     url: v.string(),
     alt: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")),
+    kind: v.optional(v.union(v.literal("photo"), v.literal("video"))),
+    mimeType: v.optional(v.string()),
+    posterUrl: v.optional(v.string()),
   },
   returns: v.id("galleryImages"),
   handler: async (ctx, args) => {
@@ -105,12 +108,18 @@ export const addImage = bridgedMutation({
       .query("galleryImages")
       .withIndex("by_album", (q) => q.eq("albumId", args.albumId))
       .collect();
+    const kind =
+      args.kind ??
+      (args.mimeType?.startsWith("video/") ? "video" : "photo");
     return await ctx.db.insert("galleryImages", {
       albumId: args.albumId,
       url: args.url,
       alt: args.alt,
       order: existing.length,
       storageId: args.storageId,
+      kind,
+      mimeType: args.mimeType,
+      posterUrl: args.posterUrl,
     });
   },
 });

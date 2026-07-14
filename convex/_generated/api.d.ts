@@ -14,6 +14,8 @@ import type * as donations from "../donations.js";
 import type * as events from "../events.js";
 import type * as gallery from "../gallery.js";
 import type * as home from "../home.js";
+import type * as homeSpotlight from "../homeSpotlight.js";
+import type * as http from "../http.js";
 import type * as lib_bridgeAuth from "../lib/bridgeAuth.js";
 import type * as media from "../media.js";
 import type * as newsletter from "../newsletter.js";
@@ -39,6 +41,8 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   gallery: typeof gallery;
   home: typeof home;
+  homeSpotlight: typeof homeSpotlight;
+  http: typeof http;
   "lib/bridgeAuth": typeof lib_bridgeAuth;
   media: typeof media;
   newsletter: typeof newsletter;

@@ -351,26 +351,34 @@ export function TestimonialsSection({
                 <ChevronLeft className="h-4 w-4" />
               </button>
 
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: pageCount }).map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => goTo(i)}
-                    aria-label={`Page ${i + 1}`}
-                    aria-current={i === index ? "true" : undefined}
-                    className="flex h-11 w-11 items-center justify-center"
-                  >
-                    <span
-                      className={cn(
-                        "rounded-full transition-all duration-300",
-                        i === index
-                          ? "h-1.5 w-8 bg-gradient-to-r from-[#4FD1A5] via-[#60A5FA] to-[#8B5CF6]"
-                          : "h-1.5 w-1.5 bg-[#E5E7EB] hover:bg-[#D1D5DB]"
-                      )}
-                    />
-                  </button>
-                ))}
+              <div className="flex max-w-[min(100%,14rem)] items-center justify-center overflow-x-auto sm:max-w-none">
+                {pageCount > 6 ? (
+                  <p className="px-2 text-[13px] font-medium tabular-nums text-[#6B7280]">
+                    {index + 1} / {pageCount}
+                  </p>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: pageCount }).map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => goTo(i)}
+                        aria-label={`Page ${i + 1}`}
+                        aria-current={i === index ? "true" : undefined}
+                        className="flex h-11 w-11 items-center justify-center"
+                      >
+                        <span
+                          className={cn(
+                            "rounded-full transition-all duration-300",
+                            i === index
+                              ? "h-1.5 w-8 bg-gradient-to-r from-[#4FD1A5] via-[#60A5FA] to-[#8B5CF6]"
+                              : "h-1.5 w-1.5 bg-[#E5E7EB] hover:bg-[#D1D5DB]"
+                          )}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button

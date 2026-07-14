@@ -56,6 +56,7 @@ export const homePage = bridgedQuery({
           : null,
       }))
     );
+    // Accueil : prochain événement en premier
     eventsWithTypes.sort((a, b) => a.startDate - b.startDate);
 
     const sortedArticles = [...articles].sort(

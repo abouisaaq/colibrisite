@@ -17,6 +17,14 @@ import {
 } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+
+function revalidateStoryPages() {
+  revalidatePath("/notre-histoire");
+  revalidatePath("/admin/notre-histoire");
+  revalidatePath("/admin/histoire");
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/medias");
+}
 import {
   MAX_SITE_LOGO_HEIGHT,
   MIN_SITE_LOGO_HEIGHT,
@@ -51,11 +59,26 @@ import {
 } from "@/lib/about-story-terrain";
 import { STORY_CREATION_SETTING_KEYS } from "@/lib/about-story-creation";
 import {
+  STORY_ACCOMPAGNEMENT_SETTING_KEYS,
+  type StoryAccompagnementPhotoSlot,
+} from "@/lib/about-story-accompagnement";
+import {
   STORY_CHAPTERS_CMS_KEY,
   type StoryChaptersCms,
   getDefaultStoryChaptersCms,
 } from "@/lib/about-story-cms";
 import { HOME_SPOTLIGHT_SETTING_KEYS } from "@/lib/home-spotlight";
+import {
+  ABOUT_SECTIONS_LAYOUT_KEY,
+  HOME_SECTIONS_LAYOUT_KEY,
+} from "@/lib/page-sections";
+import { SETTING_KEYS } from "@/lib/setting-keys";
+import {
+  parseAboutCommitmentImages,
+  parseAboutCommitments,
+  ABOUT_COMMITMENT_DEFAULT_IMAGES,
+} from "@/lib/about-content";
+import { getAllSettings } from "@/lib/settings";
 
 function client() {
   return getConvexClient();
@@ -74,6 +97,23 @@ export async function saveSettings(settings: Record<string, string>) {
   revalidatePath("/contact");
   revalidatePath("/benevole");
   revalidatePath("/admin/parametres");
+  revalidatePath("/admin/accueil");
+  revalidatePath("/admin/a-propos");
+  return { success: true };
+}
+
+export async function savePageSectionsLayout(
+  page: "accueil" | "a-propos",
+  layout: { id: string; visible: boolean; order: number }[]
+) {
+  await requireAdmin();
+  const key =
+    page === "accueil"
+      ? HOME_SECTIONS_LAYOUT_KEY
+      : ABOUT_SECTIONS_LAYOUT_KEY;
+  await upsertSetting(key, JSON.stringify(layout));
+  revalidatePath(page === "accueil" ? "/" : "/a-propos");
+  revalidatePath(page === "accueil" ? "/admin/accueil" : "/admin/a-propos");
   return { success: true };
 }
 
@@ -710,8 +750,7 @@ export async function uploadStorySeismePhoto(
   if (!key) throw new Error("Emplacement photo invalide");
   const media = await uploadFile(formData);
   await upsertSetting(key, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
   return media.url;
 }
 
@@ -720,8 +759,7 @@ export async function removeStorySeismePhoto(slot: StorySeismePhotoSlot) {
   const key = STORY_SEISME_PHOTO_KEYS[slot];
   if (!key) throw new Error("Emplacement photo invalide");
   await upsertSetting(key, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
 }
 
 export async function uploadStorySeismeVideo(meta: UploadedMediaMeta) {
@@ -729,9 +767,7 @@ export async function uploadStorySeismeVideo(meta: UploadedMediaMeta) {
   assertVideoMeta(meta);
   const media = await finalizeUploadedMedia(meta);
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoFile, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
   return media.url;
 }
 
@@ -739,27 +775,21 @@ export async function uploadStorySeismeVideoPoster(formData: FormData) {
   await requireAdmin();
   const media = await uploadFile(formData);
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoPoster, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
   return media.url;
 }
 
 export async function removeStorySeismeVideoPoster() {
   await requireAdmin();
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoPoster, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
 }
 
 export async function removeStorySeismeVideo() {
   await requireAdmin();
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoFile, "");
   await upsertSetting(STORY_SEISME_SETTING_KEYS.videoPoster, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
 }
 
 export async function saveStorySeismeYoutubeUrl(url: string) {
@@ -769,8 +799,7 @@ export async function saveStorySeismeYoutubeUrl(url: string) {
     throw new Error("Lien YouTube invalide");
   }
   await upsertSetting(STORY_SEISME_SETTING_KEYS.youtubeUrl, trimmed);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
 }
 
 export async function uploadStoryPremieresPhoto(
@@ -782,8 +811,7 @@ export async function uploadStoryPremieresPhoto(
   if (!key) throw new Error("Emplacement photo invalide");
   const media = await uploadFile(formData);
   await upsertSetting(key, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
   return media.url;
 }
 
@@ -792,8 +820,7 @@ export async function removeStoryPremieresPhoto(slot: StoryPremieresPhotoSlot) {
   const key = STORY_PREMIERES_SETTING_KEYS[slot];
   if (!key) throw new Error("Emplacement photo invalide");
   await upsertSetting(key, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
 }
 
 export async function uploadStoryConfortPhoto(
@@ -805,8 +832,7 @@ export async function uploadStoryConfortPhoto(
   if (!key) throw new Error("Emplacement photo invalide");
   const media = await uploadFile(formData);
   await upsertSetting(key, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
   return media.url;
 }
 
@@ -815,8 +841,7 @@ export async function removeStoryConfortPhoto(slot: StoryConfortPhotoSlot) {
   const key = STORY_CONFORT_SETTING_KEYS[slot];
   if (!key) throw new Error("Emplacement photo invalide");
   await upsertSetting(key, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
 }
 
 export async function uploadStoryTerrainPhoto(
@@ -828,8 +853,7 @@ export async function uploadStoryTerrainPhoto(
   if (!key) throw new Error("Emplacement photo invalide");
   const media = await uploadFile(formData);
   await upsertSetting(key, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
   return media.url;
 }
 
@@ -838,8 +862,7 @@ export async function removeStoryTerrainPhoto(slot: StoryTerrainPhotoSlot) {
   const key = STORY_TERRAIN_PHOTO_KEYS[slot];
   if (!key) throw new Error("Emplacement photo invalide");
   await upsertSetting(key, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
 }
 
 export async function uploadStoryTerrainVideo(meta: UploadedMediaMeta) {
@@ -847,9 +870,7 @@ export async function uploadStoryTerrainVideo(meta: UploadedMediaMeta) {
   assertVideoMeta(meta);
   const media = await finalizeUploadedMedia(meta);
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoFile, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
   return media.url;
 }
 
@@ -857,27 +878,21 @@ export async function uploadStoryTerrainVideoPoster(formData: FormData) {
   await requireAdmin();
   const media = await uploadFile(formData);
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoPoster, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
   return media.url;
 }
 
 export async function removeStoryTerrainVideoPoster() {
   await requireAdmin();
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoPoster, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
 }
 
 export async function removeStoryTerrainVideo() {
   await requireAdmin();
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoFile, "");
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.videoPoster, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
 }
 
 export async function saveStoryTerrainYoutubeUrl(url: string) {
@@ -887,25 +902,44 @@ export async function saveStoryTerrainYoutubeUrl(url: string) {
     throw new Error("Lien YouTube invalide");
   }
   await upsertSetting(STORY_TERRAIN_SETTING_KEYS.youtubeUrl, trimmed);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
 }
 
 export async function uploadStoryCreationImage(formData: FormData) {
   await requireAdmin();
   const media = await uploadFile(formData);
   await upsertSetting(STORY_CREATION_SETTING_KEYS.image, media.url);
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
   return media.url;
 }
 
 export async function removeStoryCreationImage() {
   await requireAdmin();
   await upsertSetting(STORY_CREATION_SETTING_KEYS.image, "");
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/medias");
-  revalidatePath("/admin/histoire");
+  revalidateStoryPages();
+}
+
+export async function uploadStoryAccompagnementPhoto(
+  slot: StoryAccompagnementPhotoSlot,
+  formData: FormData
+) {
+  await requireAdmin();
+  const key = STORY_ACCOMPAGNEMENT_SETTING_KEYS[slot];
+  if (!key) throw new Error("Emplacement photo invalide");
+  const media = await uploadFile(formData);
+  await upsertSetting(key, media.url);
+  revalidateStoryPages();
+  return media.url;
+}
+
+export async function removeStoryAccompagnementPhoto(
+  slot: StoryAccompagnementPhotoSlot
+) {
+  await requireAdmin();
+  const key = STORY_ACCOMPAGNEMENT_SETTING_KEYS[slot];
+  if (!key) throw new Error("Emplacement photo invalide");
+  await upsertSetting(key, "");
+  revalidateStoryPages();
 }
 
 export async function uploadHomeSpotlightVideo(meta: UploadedMediaMeta) {
@@ -1014,9 +1048,7 @@ export async function saveStoryChaptersCms(data: StoryChaptersCms) {
     chapters: data.chapters ?? {},
   };
   await upsertSetting(STORY_CHAPTERS_CMS_KEY, JSON.stringify(payload));
-  revalidatePath("/a-propos");
-  revalidatePath("/admin/histoire");
-  revalidatePath("/admin/medias");
+  revalidateStoryPages();
   return { success: true };
 }
 
@@ -1080,6 +1112,49 @@ export async function saveAboutTeam(data: {
   revalidatePath("/admin/medias");
   revalidatePath("/admin/parametres");
   return { success: true };
+}
+
+async function readCommitmentImageSlots(): Promise<string[]> {
+  const map = await getAllSettings();
+  const titles = parseAboutCommitments(map[SETTING_KEYS.aboutCommitments]);
+  const images = parseAboutCommitmentImages(map[SETTING_KEYS.aboutCommitmentsImages]);
+  return titles.map((_, index) => images[index] ?? "");
+}
+
+export async function uploadCommitmentImage(index: number, formData: FormData) {
+  await requireAdmin();
+  if (!Number.isInteger(index) || index < 0) {
+    throw new Error("Index d'engagement invalide");
+  }
+  const media = await uploadFile(formData);
+  const slots = await readCommitmentImageSlots();
+  while (slots.length <= index) slots.push("");
+  slots[index] = media.url;
+  await upsertSetting(SETTING_KEYS.aboutCommitmentsImages, JSON.stringify(slots));
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/a-propos/engagements");
+  revalidatePath("/admin/medias");
+  return media.url;
+}
+
+export async function removeCommitmentImage(index: number) {
+  await requireAdmin();
+  if (!Number.isInteger(index) || index < 0) {
+    throw new Error("Index d'engagement invalide");
+  }
+  const slots = await readCommitmentImageSlots();
+  if (index < slots.length) {
+    slots[index] = "";
+  }
+  await upsertSetting(SETTING_KEYS.aboutCommitmentsImages, JSON.stringify(slots));
+  revalidatePath("/a-propos");
+  revalidatePath("/admin/a-propos/engagements");
+  revalidatePath("/admin/medias");
+  return {
+    success: true as const,
+    defaultUrl:
+      ABOUT_COMMITMENT_DEFAULT_IMAGES[index % ABOUT_COMMITMENT_DEFAULT_IMAGES.length],
+  };
 }
 
 export async function deleteMedia(id: string) {

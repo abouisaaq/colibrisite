@@ -4,25 +4,21 @@ import { useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
-import { Check, Heart, Handshake, ShieldCheck, Sprout, Users, FolderKanban, type LucideIcon } from "lucide-react";
+import { Heart, Handshake, ShieldCheck, Sprout, Users, FolderKanban, type LucideIcon } from "lucide-react";
 import { AnimatedCounter } from "@/components/about/animated-counter";
 import { AboutTeamSection } from "@/components/about/about-team-section";
-import { AboutStoryTimeline } from "@/components/about/about-story-timeline";
+import { AboutCommitmentsSection } from "@/components/about/about-commitments-section";
 import {
   ABOUT_COLIBRI_FABLE,
-  ABOUT_COMMITMENTS,
   ABOUT_IMAGES,
   ABOUT_TEAM_INTRO,
   ABOUT_TEAM_MEMBERS,
   ABOUT_VALUES,
+  type AboutCommitmentItem,
   type AboutTeamMember,
   type AboutValue,
+  resolveAboutCommitmentItems,
 } from "@/lib/about-content";
-import type { AboutStoryMedia } from "@/lib/about-story-chapters";
-import type { StoryPremieresMedia } from "@/lib/about-story-premieres";
-import type { StoryConfortMedia } from "@/lib/about-story-confort";
-import type { StoryCreationAsideImage } from "@/lib/about-story-creation";
-import type { StoryChaptersCms } from "@/lib/about-story-cms";
 import { cn } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -36,36 +32,24 @@ const VALUE_ICONS: Record<AboutValue["icon"], LucideIcon> = {
 
 const VALUE_STYLES = [
   {
-    iconBg: "bg-[#EF4444]",
-    iconColor: "text-white",
-    accentBar: "from-[#EF4444] to-[#F43F5E]",
-    panelBg: "from-[#EF4444]/[0.14] via-[#EF4444]/[0.05] to-transparent",
-    glow: "bg-[#EF4444]/25",
-    ring: "ring-[#EF4444]/20",
+    iconWrap: "bg-[#EF4444]/10",
+    iconColor: "text-[#EF4444]",
+    cardHover: "hover:bg-[#EF4444]/[0.08] hover:border-[#EF4444]/25",
   },
   {
-    iconBg: "bg-[#3B82F6]",
-    iconColor: "text-white",
-    accentBar: "from-[#3B82F6] to-[#6366F1]",
-    panelBg: "from-[#3B82F6]/[0.16] via-[#3B82F6]/[0.06] to-transparent",
-    glow: "bg-[#3B82F6]/30",
-    ring: "ring-[#3B82F6]/20",
+    iconWrap: "bg-[#3B82F6]/10",
+    iconColor: "text-[#3B82F6]",
+    cardHover: "hover:bg-[#3B82F6]/[0.08] hover:border-[#3B82F6]/25",
   },
   {
-    iconBg: "bg-[#8B5CF6]",
-    iconColor: "text-white",
-    accentBar: "from-[#8B5CF6] to-[#A855F7]",
-    panelBg: "from-[#8B5CF6]/[0.16] via-[#8B5CF6]/[0.06] to-transparent",
-    glow: "bg-[#8B5CF6]/30",
-    ring: "ring-[#8B5CF6]/20",
+    iconWrap: "bg-[#8B5CF6]/10",
+    iconColor: "text-[#8B5CF6]",
+    cardHover: "hover:bg-[#8B5CF6]/[0.08] hover:border-[#8B5CF6]/25",
   },
   {
-    iconBg: "bg-[#10B981]",
-    iconColor: "text-white",
-    accentBar: "from-[#10B981] to-[#34D399]",
-    panelBg: "from-[#10B981]/[0.16] via-[#10B981]/[0.06] to-transparent",
-    glow: "bg-[#10B981]/30",
-    ring: "ring-[#10B981]/20",
+    iconWrap: "bg-[#10B981]/10",
+    iconColor: "text-[#10B981]",
+    cardHover: "hover:bg-[#10B981]/[0.08] hover:border-[#10B981]/25",
   },
 ] as const;
 
@@ -104,28 +88,21 @@ interface AboutPageContentProps {
   mission?: string;
   teamIntro?: string;
   teamMembers?: AboutTeamMember[];
-  storyTitle?: string;
-  storyQuote?: string;
   valuesTitle?: string;
   values?: AboutValue[];
   colibriTitle?: string;
   colibriText?: string;
   commitmentsTitle?: string;
-  commitments?: string[];
+  commitments?: AboutCommitmentItem[];
   ctaTitle?: string;
   ctaSubtitle?: string;
   families: string;
   volunteers: string;
   projects: string;
   partners: string;
-  storyImageUrl?: string;
   colibriImageUrl?: string;
-  seismeMedia?: AboutStoryMedia;
-  premieresMedia?: StoryPremieresMedia;
-  confortMedia?: StoryConfortMedia;
-  terrainMedia?: AboutStoryMedia;
-  creationImage?: StoryCreationAsideImage;
-  storyCms?: StoryChaptersCms;
+  /** Ids ordonnés et visibles (layout CMS). Si absent : ordre par défaut. */
+  sectionLayout?: { id: string; visible: boolean; order: number }[];
 }
 
 function ColibriWatermark({ className }: { className?: string }) {
@@ -204,8 +181,6 @@ export function AboutPageContent({
   mission: _mission,
   teamIntro: teamIntroProp,
   teamMembers,
-  storyTitle: _storyTitle,
-  storyQuote: _storyQuote,
   valuesTitle,
   values,
   colibriTitle,
@@ -218,17 +193,28 @@ export function AboutPageContent({
   volunteers,
   projects,
   partners,
-  storyImageUrl: _storyImageUrl,
   colibriImageUrl,
-  seismeMedia,
-  premieresMedia,
-  confortMedia,
-  terrainMedia,
-  creationImage,
-  storyCms,
+  sectionLayout,
 }: AboutPageContentProps) {
   const impactRef = useRef<HTMLElement>(null);
   const impactInView = useInView(impactRef, { once: true, amount: 0.2 });
+
+  const layoutMeta = (id: string) => {
+    const item = sectionLayout?.find((row) => row.id === id);
+    return {
+      visible: item ? item.visible : true,
+      order: item?.order ?? 0,
+    };
+  };
+  const wrap = (id: string, node: ReactNode) => {
+    const meta = layoutMeta(id);
+    if (!meta.visible) return null;
+    return (
+      <div key={id} style={{ order: meta.order }}>
+        {node}
+      </div>
+    );
+  };
 
   const resolvedValuesTitle = valuesTitle?.trim() || "Ce qui nous guide chaque jour";
   const resolvedValues = values?.length ? values : [...ABOUT_VALUES];
@@ -236,7 +222,9 @@ export function AboutPageContent({
   const resolvedColibriText = colibriText?.trim() || ABOUT_COLIBRI_FABLE;
   const resolvedCommitmentsTitle =
     commitmentsTitle?.trim() || "Notre promesse envers vous";
-  const resolvedCommitments = commitments?.length ? commitments : [...ABOUT_COMMITMENTS];
+  const resolvedCommitments = commitments?.length
+    ? commitments
+    : resolveAboutCommitmentItems();
   const resolvedCtaTitle = ctaTitle?.trim() || "Ensemble, faisons grandir l'espoir";
   const resolvedCtaSubtitle =
     ctaSubtitle?.trim() ||
@@ -253,18 +241,10 @@ export function AboutPageContent({
   ];
 
   return (
-    <>
-      <AboutStoryTimeline
-        seismeMedia={seismeMedia}
-        premieresMedia={premieresMedia}
-        confortMedia={confortMedia}
-        terrainMedia={terrainMedia}
-        creationImage={creationImage}
-        storyCms={storyCms}
-      />
-
-      {/* Nos valeurs */}
-      <section className="bg-[#F8FAFC] site-section">
+    <div className="flex flex-col">
+      {wrap(
+        "valeurs",
+        <section className="bg-[#F8FAFC] site-section">
         <div className="site-container">
           <Reveal className="mx-auto max-w-2xl text-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#42D7C8]">
@@ -275,71 +255,38 @@ export function AboutPageContent({
             </h2>
           </Reveal>
 
-          <div className="mt-10 grid gap-3.5 sm:grid-cols-2 sm:gap-4">
+          <div className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4">
             {resolvedValues.map((value, index) => {
               const Icon = VALUE_ICONS[value.icon];
               const style = VALUE_STYLES[index] ?? VALUE_STYLES[0];
 
               return (
-                <Reveal key={value.title} delay={index * 0.08}>
+                <Reveal key={value.title} delay={index * 0.06}>
                   <article
                     className={cn(
-                      "group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB]/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)]",
-                      "transition-all duration-300 ease-out",
-                      "hover:-translate-y-1.5 hover:shadow-[0_16px_40px_rgba(15,23,42,0.12)]"
+                      "flex h-full gap-3 rounded-xl border border-[#E5E7EB]/90 bg-white px-3.5 py-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:gap-3.5 sm:px-4 sm:py-4",
+                      "origin-center transition-all duration-300 ease-out",
+                      "hover:z-10 hover:scale-[1.03] hover:shadow-[0_10px_28px_rgba(15,23,42,0.08)]",
+                      style.cardHover
                     )}
                   >
-                    <span
-                      className={cn(
-                        "absolute top-0 left-0 z-20 h-0.5 w-full origin-left scale-x-0 rounded-t-2xl bg-gradient-to-r transition-transform duration-300 group-hover:scale-x-100",
-                        style.accentBar
-                      )}
-                      aria-hidden
-                    />
-
                     <div
                       className={cn(
-                        "relative flex h-24 w-full shrink-0 items-center justify-center overflow-hidden sm:h-28",
-                        "bg-gradient-to-b",
-                        style.panelBg
+                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9",
+                        style.iconWrap
                       )}
                     >
-                      <div
-                        className={cn(
-                          "pointer-events-none absolute h-20 w-20 rounded-full blur-2xl transition-all duration-500",
-                          "opacity-50 scale-90 group-hover:scale-125 group-hover:opacity-80",
-                          style.glow
-                        )}
+                      <Icon
+                        className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", style.iconColor)}
+                        strokeWidth={1.75}
                         aria-hidden
                       />
-
-                      <div
-                        className={cn(
-                          "relative flex h-12 w-12 items-center justify-center rounded-xl sm:h-[3.25rem] sm:w-[3.25rem]",
-                          "shadow-[0_8px_24px_rgba(15,23,42,0.1)] ring-4",
-                          "animate-float-gentle transition-all duration-500 ease-out",
-                          "group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:rotate-6",
-                          style.iconBg,
-                          style.ring
-                        )}
-                      >
-                        <Icon
-                          className={cn(
-                            "h-5 w-5 transition-transform duration-500 ease-out sm:h-6 sm:w-6",
-                            "group-hover:scale-110",
-                            style.iconColor
-                          )}
-                          strokeWidth={1.6}
-                          aria-hidden
-                        />
-                      </div>
                     </div>
-
-                    <div className="px-3.5 py-3.5 text-center sm:px-4 sm:py-4">
-                      <h3 className="text-[14px] font-bold leading-snug text-[#111827] sm:text-[15px]">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-[15px] font-semibold leading-snug text-[#111827] sm:text-[16px]">
                         {value.title}
                       </h3>
-                      <p className="mt-1.5 text-[12px] leading-[1.5] text-[#6B7280] sm:text-[13px]">
+                      <p className="mt-1 text-[12px] leading-relaxed text-[#6B7280] sm:text-[13px]">
                         {value.description}
                       </p>
                     </div>
@@ -350,9 +297,11 @@ export function AboutPageContent({
           </div>
         </div>
       </section>
+      )}
 
-      {/* Notre impact */}
-      <section ref={impactRef} className="relative overflow-hidden bg-white site-section">
+      {wrap(
+        "impact",
+        <section ref={impactRef} className="relative overflow-hidden bg-white site-section">
         <div
           className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#4FD1A5]/[0.04] via-transparent to-[#8B5CF6]/[0.05]"
           aria-hidden
@@ -433,9 +382,11 @@ export function AboutPageContent({
           </div>
         </div>
       </section>
+      )}
 
-      {/* Pourquoi le Colibri */}
-      <section className="relative overflow-hidden bg-[#F8FAFC] site-section">
+      {wrap(
+        "colibri",
+        <section className="relative overflow-hidden bg-[#F8FAFC] site-section">
         <ColibriWatermark className="absolute -right-8 top-1/2 h-72 w-72 -translate-y-1/2 sm:h-96 sm:w-96" />
         <div className="site-container grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal direction="left">
@@ -466,38 +417,21 @@ export function AboutPageContent({
           </Reveal>
         </div>
       </section>
+      )}
 
-      <AboutTeamSection intro={teamIntro} members={members} />
+      {wrap("equipe", <AboutTeamSection intro={teamIntro} members={members} />)}
 
-      {/* Nos engagements */}
-      <section className="bg-[#F8FAFC] site-section">
-        <div className="site-container">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0d8f5f]">
-              Nos engagements
-            </p>
-            <h2 className="mt-3 font-heading text-[2rem] font-bold text-[#111827] sm:text-[2.25rem]">
-              {resolvedCommitmentsTitle}
-            </h2>
-          </Reveal>
+      {wrap(
+        "engagements",
+        <AboutCommitmentsSection
+          title={resolvedCommitmentsTitle}
+          items={resolvedCommitments}
+        />
+      )}
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {resolvedCommitments.map((commitment, index) => (
-              <Reveal key={`${commitment}-${index}`} delay={index * 0.06}>
-                <div className="flex items-center gap-3 rounded-[20px] border border-[#E5E7EB]/80 bg-white px-5 py-4 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4FD1A5]/12">
-                    <Check className="h-4 w-4 text-[#0d8f5f]" strokeWidth={2.5} />
-                  </span>
-                  <p className="text-sm font-semibold text-[#111827]">{commitment}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA final */}
-      <section className="relative overflow-hidden site-section">
+      {wrap(
+        "cta",
+        <section className="relative overflow-hidden site-section">
         <div
           className="absolute inset-0 bg-gradient-to-br from-[#4FD1A5]/10 via-[#5BB8F0]/8 to-[#8B5CF6]/12"
           aria-hidden
@@ -532,6 +466,7 @@ export function AboutPageContent({
           </Reveal>
         </div>
       </section>
-    </>
+      )}
+    </div>
   );
 }

@@ -77,7 +77,7 @@ function PremiumStatIcon({
   return (
     <div
       className={cn(
-        "relative mx-auto mb-3 flex h-[90px] w-[90px] items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        "relative mx-auto mb-2 flex h-[68px] w-[68px] items-center justify-center transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-[74px] sm:w-[74px]",
         visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-90 opacity-0"
       )}
     >
@@ -97,9 +97,9 @@ function PremiumStatIcon({
       >
         <div className="h-full w-full rounded-full bg-[rgba(248,250,255,0.9)]" />
       </div>
-      <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full border border-white/90 bg-white/80 shadow-[0_10px_28px_rgba(0,0,0,0.07)] backdrop-blur-sm">
+      <div className="relative flex h-[56px] w-[56px] items-center justify-center rounded-full border border-white/90 bg-white/80 shadow-[0_8px_20px_rgba(0,0,0,0.06)] backdrop-blur-sm sm:h-[62px] sm:w-[62px]">
         <Icon
-          className={cn("stat-icon-float h-9 w-9", iconColor, visible && "fill-current/15")}
+          className={cn("stat-icon-float h-7 w-7", iconColor, visible && "fill-current/15")}
           strokeWidth={1.75}
         />
       </div>
@@ -154,7 +154,7 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
           </h2>
         </ScrollReveal>
 
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-4">
           {stats.map((stat, index) => (
             <StaggerReveal
               key={stat.key}
@@ -167,14 +167,14 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
             >
               <article
                 className={cn(
-                  "group relative flex flex-col items-center overflow-hidden rounded-[1.35rem] px-4 py-4 text-center sm:px-5 sm:py-5",
+                  "group relative flex flex-col items-center overflow-hidden rounded-2xl px-3 py-3 text-center sm:px-4 sm:py-3.5",
                   "stat-card-glass transition-shadow duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                  "hover:-translate-y-2 hover:shadow-[0_28px_60px_rgba(15,23,42,0.14)]"
+                  "hover:-translate-y-1.5 hover:shadow-[0_20px_44px_rgba(15,23,42,0.12)]"
                 )}
               >
                 <div
                   className={cn(
-                    "pointer-events-none absolute -inset-3 rounded-[1.6rem] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100",
+                    "pointer-events-none absolute -inset-3 rounded-[1.4rem] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100",
                     stat.hoverHalo
                   )}
                   aria-hidden
@@ -182,7 +182,7 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
 
                 <div
                   className={cn(
-                    "pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-90",
+                    "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r opacity-90",
                     stat.gradient
                   )}
                   aria-hidden
@@ -198,11 +198,11 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
 
                 <p
                   className={cn(
-                    "flex items-baseline justify-center gap-0.5 bg-gradient-to-r bg-clip-text text-[2.25rem] font-extrabold leading-none text-transparent sm:text-[3.25rem] lg:text-[3.5rem]",
+                    "flex items-baseline justify-center gap-0.5 bg-gradient-to-r bg-clip-text text-[1.75rem] font-extrabold leading-none text-transparent sm:text-[2.25rem] lg:text-[2.5rem]",
                     stat.gradient
                   )}
                 >
-                  <span className="text-[1.5rem] font-extrabold sm:text-[2rem] lg:text-[2.125rem]">
+                  <span className="text-[1.125rem] font-extrabold sm:text-[1.375rem] lg:text-[1.5rem]">
                     +
                   </span>
                   <span className="tabular-nums tracking-tight">
@@ -214,7 +214,7 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
                   </span>
                 </p>
 
-                <p className="mt-2 max-w-[9rem] text-center text-[13px] font-medium leading-snug text-[#6B7280] sm:text-sm">
+                <p className="mt-1.5 max-w-[8.5rem] text-center text-[12px] font-medium leading-snug text-[#6B7280] sm:text-[13px]">
                   {stat.label}
                 </p>
               </article>

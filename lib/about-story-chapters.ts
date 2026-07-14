@@ -1,5 +1,5 @@
 /**
- * Contenu de la frise « Notre histoire » (5 chapitres).
+ * Contenu de la frise « Notre histoire » (6 chapitres).
  * Modifier ici : années, titres, textes.
  *
  * Médias Séisme (photos, vidéo upload, lien YouTube) :
@@ -193,6 +193,31 @@ export const ABOUT_STORY_CHAPTERS: AboutStoryChapter[] = [
     },
   },
   {
+    id: "ancrage",
+    year: "Accompagnement",
+    stageLabel: "Accompagnement",
+    title: "",
+    description: "",
+    sections: [
+      {
+        heading: "Rester présent",
+        body: "Après les premiers secours et les moments de fête, nous restons auprès des familles. L'aide se poursuit : suivi des besoins, accompagnement des enfants, et consolidation des liens tissés avec le village.",
+      },
+      {
+        heading: "Préparer la suite",
+        body: "Cette présence régulière nous montre qu'un engagement durable nécessite une structure. L'idée d'une association prend forme : pour agir ensemble, dans la durée, et faire sa part — comme le colibri.",
+      },
+    ],
+    imageSrc: "/brand/story/06-accompagnement-transparent.png?v=2",
+    imageAlt: "Colibri en vol — Accompagnement",
+    visualKey: "wings",
+    /** Photos injectées depuis Admin → Notre histoire */
+    sidePhotos: {
+      leftPhotos: { main: "", left: "", right: "" },
+      rightPhotos: { main: "", left: "", right: "" },
+    },
+  },
+  {
     id: "creation-association",
     year: "Création de l'association",
     stageLabel: "Création de l'association",
@@ -209,7 +234,7 @@ export const ABOUT_STORY_CHAPTERS: AboutStoryChapter[] = [
         ].join("\n\n"),
       },
     ],
-    imageSrc: "/brand/story/05-vol-transparent.png?v=1",
+    imageSrc: "/brand/story/05-vol-transparent.png?v=2",
     imageAlt: "Colibri en vol — Création de l'association",
     visualKey: "flight",
     /** Image injectée depuis Admin → Médias */

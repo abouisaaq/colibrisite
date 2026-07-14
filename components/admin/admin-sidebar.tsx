@@ -22,8 +22,9 @@ import {
   MessageCircle,
   Handshake,
   FolderOpen,
+  Home,
+  Info,
   BookOpen,
-  Film,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,14 @@ const navGroups = [
     ],
   },
   {
+    label: "Pages",
+    items: [
+      { href: "/admin/accueil", label: "Accueil", icon: Home },
+      { href: "/admin/notre-histoire", label: "Notre histoire", icon: BookOpen },
+      { href: "/admin/a-propos", label: "À propos", icon: Info },
+    ],
+  },
+  {
     label: "Contenu",
     items: [
       { href: "/admin/articles", label: "Articles", icon: FileText },
@@ -47,10 +56,8 @@ const navGroups = [
       { href: "/admin/actions", label: "Actions", icon: Heart },
       { href: "/admin/temoignages", label: "Témoignages", icon: MessageSquareQuote },
       { href: "/admin/partenaires", label: "Partenaires", icon: Handshake },
-      { href: "/admin/medias", label: "Médias", icon: FolderOpen },
-      { href: "/admin/videos-accueil", label: "Vidéos Accueil", icon: Film },
-      { href: "/admin/histoire", label: "Notre histoire", icon: BookOpen },
       { href: "/admin/galerie", label: "Galerie", icon: Images },
+      { href: "/admin/medias", label: "Bibliothèque médias", icon: FolderOpen },
     ],
   },
   {
@@ -77,8 +84,8 @@ export function AdminSidebar({ role = "EDITOR" }: { role?: string }) {
   const [open, setOpen] = useState(false);
   const isAdmin = role === "ADMIN";
 
-  const visibleGroups = navGroups.filter((group) =>
-    !("adminOnly" in group && group.adminOnly) || isAdmin
+  const visibleGroups = navGroups.filter(
+    (group) => !("adminOnly" in group && group.adminOnly) || isAdmin
   );
 
   return (
@@ -120,53 +127,47 @@ export function AdminSidebar({ role = "EDITOR" }: { role?: string }) {
               <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
                 {group.label}
               </p>
-              <div className="space-y-0.5">
+              <ul className="space-y-1">
                 {group.items.map((item) => {
                   const active =
                     pathname === item.href ||
-                    (item.href !== "/admin" && pathname.startsWith(item.href));
-
+                    (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
+                  const Icon = item.icon;
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
-                        active
-                          ? "bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-white shadow-[0_8px_20px_rgba(20,184,166,0.28)]"
-                          : "text-white/65 hover:bg-white/10 hover:text-white"
-                      )}
-                    >
-                      <item.icon className="h-4 w-4 shrink-0 opacity-90" strokeWidth={1.75} />
-                      {item.label}
-                    </Link>
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors",
+                          active
+                            ? "bg-white/10 text-white"
+                            : "text-white/65 hover:bg-white/5 hover:text-white"
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0 opacity-80" />
+                        {item.label}
+                      </Link>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </div>
           ))}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
+        <div className="border-t border-white/10 p-3">
           <Button
+            type="button"
             variant="ghost"
-            className="w-full justify-start rounded-xl text-white/65 hover:bg-white/10 hover:text-white"
-            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            className="w-full justify-start gap-3 text-white/65 hover:bg-white/5 hover:text-white"
+            onClick={() => signOut({ callbackUrl: "/" })}
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="h-4 w-4" />
             Déconnexion
           </Button>
         </div>
       </aside>
-
-      {open ? (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={() => setOpen(false)}
-          aria-hidden
-        />
-      ) : null}
     </>
   );
 }

@@ -29,7 +29,7 @@ export const listEvents = bridgedQuery({
         return { ...event, eventType, id: event._id };
       })
     );
-    withTypes.sort((a, b) => a.startDate - b.startDate);
+    withTypes.sort((a, b) => b.startDate - a.startDate);
     return args.limit ? withTypes.slice(0, args.limit) : withTypes;
   },
 });

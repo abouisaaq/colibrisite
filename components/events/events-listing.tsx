@@ -253,20 +253,37 @@ export function EventsListing({ events }: EventsListingProps) {
   }, [activeFilter, events]);
 
   const sorted = useMemo(() => {
-    return [...filtered].sort(
-      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
-  }, [filtered]);
-
-  const featured = useMemo(() => {
     const now = Date.now();
-    const upcoming = sorted.find((event) => new Date(event.startDate).getTime() >= now);
-    return upcoming ?? sorted[0];
-  }, [sorted]);
+
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(a.startDate).getTime();
+      const dateB = new Date(b.startDate).getTime();
+
+      // À venir : du plus proche au plus lointain
+      if (activeFilter === "À venir") {
+        return dateA - dateB;
+      }
+
+      // Passés : du plus récent au plus ancien
+      if (activeFilter === "Passés") {
+        return dateB - dateA;
+      }
+
+      // Tous / type : d’abord les à venir (proches), puis les passés (récents)
+      const aUpcoming = dateA >= now;
+      const bUpcoming = dateB >= now;
+      if (aUpcoming && !bUpcoming) return -1;
+      if (!aUpcoming && bUpcoming) return 1;
+      if (aUpcoming && bUpcoming) return dateA - dateB;
+      return dateB - dateA;
+    });
+  }, [filtered, activeFilter]);
+
+  const featured = useMemo(() => sorted[0], [sorted]);
 
   const rest = useMemo(() => {
     if (!featured) return [];
-    return sorted.filter((event) => event.id !== featured.id);
+    return sorted.slice(1);
   }, [sorted, featured]);
 
   if (events.length === 0) {

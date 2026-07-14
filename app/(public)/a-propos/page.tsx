@@ -4,20 +4,15 @@ import { PageHero } from "@/components/layout/page-hero";
 import { SiteMain } from "@/components/layout/site-main";
 import { getPublicSettings } from "@/lib/settings";
 import { resolveSitePageImage } from "@/lib/site-images";
-import { resolveStorySeismeMedia } from "@/lib/about-story-media";
-import { resolveStoryPremieresMedia } from "@/lib/about-story-premieres";
-import { resolveStoryConfortMedia } from "@/lib/about-story-confort";
-import { resolveStoryTerrainMedia } from "@/lib/about-story-terrain";
-import { resolveStoryCreationImage } from "@/lib/about-story-creation";
 import {
-  parseStoryChaptersCms,
-  STORY_CHAPTERS_CMS_KEY,
-} from "@/lib/about-story-cms";
-import {
-  parseAboutCommitments,
   parseAboutTeamMembers,
   parseAboutValues,
+  resolveAboutCommitmentItems,
 } from "@/lib/about-content";
+import {
+  isSectionVisible,
+  resolveAboutLayout,
+} from "@/lib/page-sections";
 
 export const metadata: Metadata = {
   title: "À propos",
@@ -28,28 +23,33 @@ export default async function AboutPage() {
   const settings = await getPublicSettings();
   const teamMembers = parseAboutTeamMembers(settings.about_team_members);
   const values = parseAboutValues(settings.about_values);
-  const commitments = parseAboutCommitments(settings.about_commitments);
+  const commitments = resolveAboutCommitmentItems(
+    settings.about_commitments,
+    settings.about_commitments_images
+  );
+  const layout = resolveAboutLayout(settings);
+  const showHero = isSectionVisible(layout, "hero");
 
   return (
     <>
-      <PageHero
-        eyebrow="À PROPOS"
-        title="À propos"
-        description={
-          settings.about_hero_description?.trim() ||
-          "Découvrez qui nous sommes et ce qui nous anime au quotidien."
-        }
-        breadcrumbs={[
-          { label: "Accueil", href: "/" },
-          { label: "À propos" },
-        ]}
-      />
+      {showHero ? (
+        <PageHero
+          eyebrow="À PROPOS"
+          title="À propos"
+          description={
+            settings.about_hero_description?.trim() ||
+            "Découvrez qui nous sommes et ce qui nous anime au quotidien."
+          }
+          breadcrumbs={[
+            { label: "Accueil", href: "/" },
+            { label: "À propos" },
+          ]}
+        />
+      ) : null}
 
       <SiteMain>
         <AboutPageContent
           mission={settings.about_mission}
-          storyTitle={settings.about_story_title}
-          storyQuote={settings.about_story_quote}
           valuesTitle={settings.about_values_title}
           values={values}
           colibriTitle={settings.about_colibri_title}
@@ -64,14 +64,8 @@ export default async function AboutPage() {
           volunteers={settings.stat_volunteers ?? "100"}
           projects={settings.stat_projects ?? "50"}
           partners={settings.stat_partners ?? "15"}
-          storyImageUrl={resolveSitePageImage(settings, "about_story")}
           colibriImageUrl={resolveSitePageImage(settings, "about_colibri")}
-          seismeMedia={resolveStorySeismeMedia(settings)}
-          premieresMedia={resolveStoryPremieresMedia(settings)}
-          confortMedia={resolveStoryConfortMedia(settings)}
-          terrainMedia={resolveStoryTerrainMedia(settings)}
-          creationImage={resolveStoryCreationImage(settings)}
-          storyCms={parseStoryChaptersCms(settings[STORY_CHAPTERS_CMS_KEY])}
+          sectionLayout={layout}
         />
       </SiteMain>
     </>

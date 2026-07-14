@@ -133,6 +133,9 @@ export function mergeStoryChaptersWithCms(
         }))
         .filter((s) => s.heading || s.body);
     }
+    if (next.sections?.length) {
+      next.paragraphs = undefined;
+    }
     if (chapter.splitLayout && (overlay.splitLeft || overlay.splitRight)) {
       next.splitLayout = {
         ...chapter.splitLayout,

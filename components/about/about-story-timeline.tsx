@@ -195,28 +195,28 @@ function MediaChapterPanel({
 }) {
   const videoRight = chapter.mediaPlacement === "video-right";
   const video = (
-    <div className="mx-auto w-[120px] shrink-0 sm:w-[160px] md:mx-0 md:w-[168px] xl:w-[180px]">
+    <div className="mx-auto w-[120px] shrink-0 sm:w-[160px] lg:mx-0 lg:w-[168px] xl:w-[180px]">
       <StoryVideo media={media} label={chapter.year} />
     </div>
   );
   const photos = (
     <div
       className={cn(
-        "flex shrink-0 justify-center md:items-start",
-        videoRight ? "md:justify-start" : "md:justify-end"
+        "flex shrink-0 justify-center lg:items-start",
+        videoRight ? "lg:justify-start" : "lg:justify-end"
       )}
     >
       <StoryPhotoStack photos={media.photos} />
     </div>
   );
   const text = (
-    <div className="min-w-0 text-left md:pt-1">
+    <div className="min-w-0 text-left lg:pt-1">
       <ChapterTextContent chapter={chapter} />
     </div>
   );
 
   return (
-    <div className="flex flex-col items-center gap-6 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-start md:gap-8 xl:gap-10">
+    <div className="flex flex-col items-center gap-6 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-start lg:gap-8 xl:gap-10">
       {videoRight ? (
         <>
           {photos}
@@ -404,6 +404,7 @@ export function AboutStoryTimeline({
   premieresMedia,
   confortMedia,
   terrainMedia,
+  accompagnementMedia,
   creationImage,
   storyCms,
 }: {
@@ -411,6 +412,7 @@ export function AboutStoryTimeline({
   premieresMedia?: Pick<AboutStorySplitLayout, "leftPhotos" | "rightPhotos">;
   confortMedia?: NonNullable<AboutStoryChapter["sidePhotos"]>;
   terrainMedia?: AboutStoryMedia;
+  accompagnementMedia?: NonNullable<AboutStoryChapter["sidePhotos"]>;
   creationImage?: NonNullable<AboutStoryChapter["asideImage"]>;
   storyCms?: StoryChaptersCms;
 }) {
@@ -439,6 +441,9 @@ export function AboutStoryTimeline({
     }
     if (chapter.id === "terrain-de-foot" && terrainMedia) {
       return { ...chapter, media: terrainMedia };
+    }
+    if (chapter.id === "ancrage" && accompagnementMedia) {
+      return { ...chapter, sidePhotos: accompagnementMedia };
     }
     if (chapter.id === "creation-association" && creationImage) {
       return { ...chapter, asideImage: creationImage };

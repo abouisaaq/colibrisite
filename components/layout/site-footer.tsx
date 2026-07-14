@@ -38,6 +38,7 @@ export function SiteFooter({ settings = {}, logoUrl }: SiteFooterProps) {
           <div>
             <h3 className="mb-4 font-semibold">Navigation</h3>
             <ul className="space-y-2 text-sm text-white/65">
+              <li><Link href="/notre-histoire" className="transition-colors hover:text-[#42D7C8]">Notre histoire</Link></li>
               <li><Link href="/a-propos" className="transition-colors hover:text-[#42D7C8]">À propos</Link></li>
               <li><Link href="/#nos-actions" className="transition-colors hover:text-[#42D7C8]">Nos actions</Link></li>
               <li><Link href="/actualites" className="transition-colors hover:text-[#42D7C8]">Actualités</Link></li>

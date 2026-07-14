@@ -7,13 +7,13 @@ import { resolveActionIcon } from "@/lib/action-icons";
 import { cn } from "@/lib/utils";
 
 function useActionsGridColumns() {
-  const [columns, setColumns] = useState(3);
+  const [columns, setColumns] = useState(4);
 
   useEffect(() => {
     function update() {
-      if (window.matchMedia("(min-width: 1024px)").matches) setColumns(3);
-      else if (window.matchMedia("(min-width: 640px)").matches) setColumns(2);
-      else setColumns(1);
+      if (window.matchMedia("(min-width: 1024px)").matches) setColumns(4);
+      else if (window.matchMedia("(min-width: 640px)").matches) setColumns(3);
+      else setColumns(2);
     }
 
     update();
@@ -29,17 +29,20 @@ function getActionCardEntryOffset(index: number, columns: number): { x: number; 
   const col = index % columns;
   const row = Math.floor(index / columns);
 
-  if (columns === 1) {
-    return { x: 0, y: 56 };
-  }
-
   if (columns === 2) {
-    return col === 0 ? { x: -72, y: 0 } : { x: 72, y: 0 };
+    return col === 0 ? { x: -56, y: 0 } : { x: 56, y: 0 };
   }
 
-  if (col === 0) return { x: -72, y: 0 };
-  if (col === 2) return { x: 72, y: 0 };
-  return row % 2 === 0 ? { x: 0, y: -56 } : { x: 0, y: 56 };
+  if (columns === 3) {
+    if (col === 0) return { x: -64, y: 0 };
+    if (col === 2) return { x: 64, y: 0 };
+    return row % 2 === 0 ? { x: 0, y: -40 } : { x: 0, y: 40 };
+  }
+
+  // 4 columns
+  if (col === 0) return { x: -64, y: 0 };
+  if (col === 3) return { x: 64, y: 0 };
+  return row % 2 === 0 ? { x: 0, y: -40 } : { x: 0, y: 40 };
 }
 
 const ACTION_STYLES: Record<
@@ -141,7 +144,7 @@ export function ActionsGrid({
           />
         </ScrollReveal>
 
-        <div className="actions-row-grid mt-10">
+        <div className="actions-row-grid mt-7 sm:mt-8">
           {sorted.map((action, index) => {
             const Icon = resolveActionIcon(action.icon);
             const style = ACTION_STYLES[action.slug] ?? {
@@ -165,14 +168,14 @@ export function ActionsGrid({
               >
                 <article
                   className={cn(
-                    "group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB]/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)]",
+                    "group relative flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#E5E7EB]/80 bg-white shadow-[0_3px_14px_rgba(0,0,0,0.04)]",
                     "transition-all duration-300 ease-out",
-                    "hover:-translate-y-1.5 hover:border-[#E5E7EB] hover:shadow-[0_16px_40px_rgba(15,23,42,0.12)]"
+                    "hover:-translate-y-1 hover:border-[#E5E7EB] hover:shadow-[0_12px_28px_rgba(15,23,42,0.1)]"
                   )}
                 >
                   <span
                     className={cn(
-                      "absolute top-0 left-0 z-20 h-0.5 w-full origin-left scale-x-0 rounded-t-2xl bg-gradient-to-r transition-transform duration-300 group-hover:scale-x-100",
+                      "absolute top-0 left-0 z-20 h-0.5 w-full origin-left scale-x-0 rounded-t-xl bg-gradient-to-r transition-transform duration-300 group-hover:scale-x-100",
                       style.accentBar
                     )}
                     aria-hidden
@@ -180,14 +183,14 @@ export function ActionsGrid({
 
                   <div
                     className={cn(
-                      "relative flex h-24 w-full shrink-0 items-center justify-center overflow-hidden sm:h-28",
+                      "relative flex h-14 w-full shrink-0 items-center justify-center overflow-hidden sm:h-16",
                       "bg-gradient-to-b",
                       style.panelBg
                     )}
                   >
                     <div
                       className={cn(
-                        "pointer-events-none absolute h-20 w-20 rounded-full blur-2xl transition-all duration-500",
+                        "pointer-events-none absolute h-12 w-12 rounded-full blur-xl transition-all duration-500",
                         "opacity-50 scale-90 group-hover:scale-125 group-hover:opacity-80",
                         style.glow
                       )}
@@ -196,17 +199,17 @@ export function ActionsGrid({
 
                     <div
                       className={cn(
-                        "relative flex h-12 w-12 items-center justify-center rounded-xl sm:h-[3.25rem] sm:w-[3.25rem]",
-                        "shadow-[0_8px_24px_rgba(15,23,42,0.1)] ring-4",
-                        "animate-float-gentle transition-all duration-500 ease-out",
-                        "group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:rotate-6",
+                        "relative flex h-8 w-8 items-center justify-center rounded-lg sm:h-9 sm:w-9",
+                        "shadow-[0_4px_12px_rgba(15,23,42,0.1)] ring-2",
+                        "transition-all duration-500 ease-out",
+                        "group-hover:scale-105 group-hover:rotate-3",
                         style.iconBg,
                         style.ring
                       )}
                     >
                       <Icon
                         className={cn(
-                          "h-5 w-5 transition-transform duration-500 ease-out sm:h-6 sm:w-6",
+                          "h-4 w-4 transition-transform duration-500 ease-out",
                           "group-hover:scale-110",
                           style.iconColor
                         )}
@@ -216,11 +219,11 @@ export function ActionsGrid({
                     </div>
                   </div>
 
-                  <div className="px-3.5 py-3.5 text-center sm:px-4 sm:py-4">
-                    <h3 className="text-[14px] font-bold leading-snug text-[#111827] sm:text-[15px]">
+                  <div className="px-2.5 py-2.5 text-center sm:px-3 sm:py-3">
+                    <h3 className="text-[14px] font-bold leading-snug text-[#111827] sm:text-[13px]">
                       {action.title}
                     </h3>
-                    <p className="mt-1.5 line-clamp-3 text-[12px] leading-[1.5] text-[#6B7280] sm:text-[13px]">
+                    <p className="mt-1 line-clamp-2 text-[12px] leading-[1.45] text-[#6B7280] sm:text-[11px] sm:leading-[1.4]">
                       {action.description}
                     </p>
                   </div>

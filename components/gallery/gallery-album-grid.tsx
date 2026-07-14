@@ -82,7 +82,7 @@ function GalleryAlbumCard({
               {photoLabel(count)}
             </span>
 
-            <div className="absolute inset-x-0 bottom-0 z-10 p-4 pr-28">
+            <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:pr-28">
               <h3 className="font-heading text-[1.125rem] font-semibold leading-snug tracking-tight text-white sm:text-xl">
                 {album.title}
               </h3>
@@ -94,9 +94,9 @@ function GalleryAlbumCard({
 
             <span
               className={cn(
-                "absolute bottom-4 right-4 z-10 inline-flex items-center gap-1.5 text-[13px] font-semibold text-white",
-                "translate-x-0 opacity-100 transition-all duration-[400ms] ease-out",
-                "sm:translate-x-2 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100"
+                "absolute bottom-4 right-4 z-10 hidden items-center gap-1.5 text-[13px] font-semibold text-white sm:inline-flex",
+                "translate-x-2 opacity-0 transition-all duration-[400ms] ease-out",
+                "sm:group-hover:translate-x-0 sm:group-hover:opacity-100"
               )}
             >
               Voir l&apos;album

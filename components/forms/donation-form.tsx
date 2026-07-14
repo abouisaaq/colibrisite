@@ -7,6 +7,10 @@ import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { PayPalDonationButtons } from "@/components/forms/paypal-donation-buttons";
+import {
+  RibDonationButton,
+  type RibDetails,
+} from "@/components/forms/rib-donation-button";
 import type { PayPalEnvironment } from "@/lib/paypal-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { DEFAULT_SITE_PAGE_IMAGES } from "@/lib/site-images";
@@ -21,6 +25,7 @@ interface DonationFormProps {
   imageUrl?: string;
   paypalClientId: string;
   paypalEnvironment: PayPalEnvironment;
+  rib?: RibDetails;
 }
 
 function AmountPill({
@@ -58,6 +63,7 @@ export function DonationForm({
   imageUrl,
   paypalClientId,
   paypalEnvironment,
+  rib,
 }: DonationFormProps) {
   const searchParams = useSearchParams();
   const [selectedAmount, setSelectedAmount] = useState<number | "autre">(50);
@@ -92,10 +98,10 @@ export function DonationForm({
     selectedAmount === "autre" ? parseFloat(customAmount) || 0 : selectedAmount;
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E5E7EB] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.08)]">
-      <div className="grid lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+    <div className="overflow-hidden rounded-[20px] border border-[#E5E7EB] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.08)] sm:rounded-[28px]">
+      <div className="grid min-w-0 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
         <motion.div
-          className="order-2 flex flex-col justify-center p-6 sm:p-8 lg:order-1 lg:p-10 lg:pr-6"
+          className="order-2 flex min-w-0 flex-col justify-center p-5 sm:p-8 lg:order-1 lg:p-10 lg:pr-6"
           initial={{ opacity: 0, x: -56 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: EASE }}
@@ -110,6 +116,11 @@ export function DonationForm({
             {ctaSubtitle}
           </p>
 
+          <p className="mt-4 max-w-md rounded-xl border border-[#4FD1A5]/25 bg-[#ECFDF8]/60 px-3.5 py-3 text-[13px] leading-relaxed text-[#0f766e]">
+            Les dons versés à notre association sont éligibles au crédit d&apos;impôt,
+            conformément à la législation en vigueur.
+          </p>
+
           <div className="mt-6">
             <p className="text-[13px] font-semibold text-[#374151]">Fréquence</p>
             <div className="mt-2 grid max-w-md grid-cols-2 gap-2.5">
@@ -118,9 +129,10 @@ export function DonationForm({
               </div>
               <div
                 title="Les dons mensuels arriveront bientôt"
-                className="flex h-11 cursor-not-allowed items-center justify-center rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] text-sm font-semibold text-[#9CA3AF]"
+                className="flex h-11 cursor-not-allowed items-center justify-center rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-1 text-center text-[13px] font-semibold text-[#9CA3AF] sm:text-sm"
               >
-                Mensuel · bientôt
+                <span className="sm:hidden">Mensuel bientôt</span>
+                <span className="hidden sm:inline">Mensuel · bientôt</span>
               </div>
             </div>
           </div>
@@ -241,6 +253,8 @@ export function DonationForm({
                 </div>
               </PayPalScriptProvider>
             ) : null}
+
+            <RibDonationButton rib={rib ?? {}} />
 
             <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[13px] leading-snug text-[#6B7280]">
               <Heart className="h-3.5 w-3.5 fill-[#F87171] text-[#F87171]" strokeWidth={0} />

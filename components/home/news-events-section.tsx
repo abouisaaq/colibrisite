@@ -128,7 +128,7 @@ export function NewsEventsSection({ articles, events }: NewsEventsSectionProps) 
   return (
     <section ref={sectionRef} className="site-section bg-white">
       <div className="site-container">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-6">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,280px)] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
           <motion.div
             initial={{ opacity: 0, y: 36 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}

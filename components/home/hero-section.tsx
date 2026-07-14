@@ -26,7 +26,7 @@ function HeroTitle({ title }: { title: string }) {
   const parts = title.split(/(l'espoir)/i);
 
   return (
-    <h1 className="font-heading text-[2.25rem] font-bold leading-[1.12] tracking-[-0.02em] text-[#111827] sm:text-[2.75rem] lg:text-[4.25rem] xl:text-[4.5rem]">
+    <h1 className="font-heading text-[clamp(1.85rem,7vw,2.25rem)] font-bold leading-[1.12] tracking-[-0.02em] text-[#111827] sm:text-[2.75rem] lg:text-[4.25rem] xl:text-[4.5rem]">
       {parts.map((part, i) =>
         /^l'espoir$/i.test(part) ? (
           <span key={i} className="text-[#26a69a]">
@@ -55,8 +55,12 @@ export function HeroSection({
   }, []);
 
   return (
-    <section className="relative isolate min-h-[700px] w-full overflow-hidden bg-white sm:min-h-[750px] lg:min-h-[820px]">
-      <SiteHeader logoUrl={logoUrl} logoHeight={logoHeight} variant="hero" />
+    <section className="relative isolate min-h-[min(100svh,640px)] w-full overflow-hidden bg-white sm:min-h-[min(100svh,720px)] lg:min-h-[820px]">
+      <SiteHeader
+        logoUrl={logoUrl}
+        logoHeight={logoHeight}
+        variant="hero"
+      />
 
       {/* Photo plein écran — composition type maquette (texte à gauche, photo vive à droite) */}
       <div className="absolute inset-0">
@@ -76,7 +80,7 @@ export function HeroSection({
       </div>
 
       <div className="relative z-10 site-container">
-        <div className="flex min-h-[700px] flex-col justify-center pb-28 pt-[88px] sm:min-h-[750px] sm:pb-32 sm:pt-[96px] lg:min-h-[820px] lg:pb-36 lg:pt-[108px]">
+        <div className="flex min-h-[min(100svh,640px)] flex-col justify-center pb-24 pt-[84px] sm:min-h-[min(100svh,720px)] sm:pb-32 sm:pt-[96px] lg:min-h-[820px] lg:pb-36 lg:pt-[108px]">
           <div
             className={cn(
               "w-full transition-all duration-700 ease-out",
@@ -92,19 +96,20 @@ export function HeroSection({
             </div>
 
             <div className="relative mt-8 w-full sm:mt-9 lg:mt-10">
-              <div className="flex max-w-[560px] flex-col gap-3 sm:flex-row sm:gap-4 lg:max-w-[520px] xl:max-w-[580px]">
+              <div className="flex max-w-[560px] flex-col gap-3 md:flex-row md:gap-4 lg:max-w-[520px] xl:max-w-[580px]">
                 <Link
                   href="/faire-un-don"
-                  className="group inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#4FD1A5] via-[#5BB8F0] to-[#8B5CF6] px-8 text-[15px] font-semibold text-white shadow-[0_10px_28px_rgba(79,209,165,0.32)] transition-transform duration-300 hover:scale-[1.02]"
+                  className="group inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#4FD1A5] via-[#5BB8F0] to-[#8B5CF6] px-8 text-[15px] font-semibold text-white shadow-[0_10px_28px_rgba(79,209,165,0.32)] transition-transform duration-300 hover:scale-[1.02] md:w-auto"
                 >
                   <Heart className="h-4 w-4 fill-white" strokeWidth={0} />
                   Faire un don
                 </Link>
                 <Link
-                  href="/#nos-actions"
-                  className="group inline-flex h-[52px] items-center justify-center gap-2.5 rounded-full border border-[#E5E7EB] bg-white/90 px-8 text-[15px] font-semibold text-[#111827] shadow-[0_2px_16px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D1D5DB] hover:shadow-[0_8px_28px_rgba(0,0,0,0.07)]"
+                  href="/notre-histoire"
+                  className="group inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full border border-[#E5E7EB] bg-white/90 px-6 text-[15px] font-semibold text-[#111827] shadow-[0_2px_16px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D1D5DB] hover:shadow-[0_8px_28px_rgba(0,0,0,0.07)] sm:px-8 md:w-auto"
                 >
-                  Découvrir nos actions
+                  <span className="sm:hidden">Notre histoire</span>
+                  <span className="hidden sm:inline">Découvrir notre histoire</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>

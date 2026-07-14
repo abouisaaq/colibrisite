@@ -35,147 +35,6 @@ type SettingsSection = {
 
 const sections: SettingsSection[] = [
   {
-    title: "Page d'accueil",
-    description:
-      "Textes du hero, mission, don, WhatsApp, partenaires, Nos Actions et Témoignages. Images : Médias. Cartes actions / témoignages : menus Contenu.",
-    fields: [
-      { key: SETTING_KEYS.heroTitle, label: "Titre hero", type: "text" },
-      { key: SETTING_KEYS.heroSubtitle, label: "Sous-titre hero", type: "textarea" },
-      { key: SETTING_KEYS.missionTitle, label: "Titre mission", type: "text" },
-      { key: SETTING_KEYS.missionText, label: "Texte mission", type: "textarea" },
-      { key: SETTING_KEYS.missionQuote, label: "Citation mission", type: "textarea" },
-      {
-        key: SETTING_KEYS.ctaTitle,
-        label: "Titre bloc don",
-        type: "text",
-        hint: "Aussi utilisé sur la page Faire un don.",
-      },
-      {
-        key: SETTING_KEYS.ctaSubtitle,
-        label: "Sous-titre bloc don",
-        type: "textarea",
-        hint: "Aussi utilisé sur la page Faire un don.",
-      },
-      { key: SETTING_KEYS.newsletterTitle, label: "Titre section WhatsApp", type: "text" },
-      {
-        key: SETTING_KEYS.newsletterSubtitle,
-        label: "Sous-titre section WhatsApp",
-        type: "textarea",
-      },
-      { key: SETTING_KEYS.partnersTitle, label: "Titre section partenaires", type: "text" },
-      {
-        key: SETTING_KEYS.partnersSubtitle,
-        label: "Sous-titre section partenaires",
-        type: "textarea",
-      },
-      {
-        key: SETTING_KEYS.actionsEyebrow,
-        label: "Sur-titre — Nos Actions",
-        type: "text",
-        hint: "Les cartes d’actions se gèrent dans Contenu → Actions.",
-      },
-      { key: SETTING_KEYS.actionsTitle, label: "Titre — Nos Actions", type: "text" },
-      {
-        key: SETTING_KEYS.actionsSubtitle,
-        label: "Sous-titre — Nos Actions",
-        type: "textarea",
-      },
-      {
-        key: SETTING_KEYS.testimonialsEyebrow,
-        label: "Sur-titre — Témoignages",
-        type: "text",
-        hint: "Les témoignages se gèrent dans Contenu → Témoignages.",
-      },
-      { key: SETTING_KEYS.testimonialsTitle, label: "Titre — Témoignages", type: "text" },
-      {
-        key: SETTING_KEYS.testimonialsSubtitle,
-        label: "Sous-titre — Témoignages",
-        type: "textarea",
-      },
-    ],
-  },
-  {
-    title: "Statistiques d'impact",
-    description: "Chiffres affichés sur l’accueil, À propos, dons et bénévolat.",
-    fields: [
-      { key: SETTING_KEYS.statFamilies, label: "Familles aidées", type: "text" },
-      { key: SETTING_KEYS.statVolunteers, label: "Bénévoles actifs", type: "text" },
-      { key: SETTING_KEYS.statProjects, label: "Projets réalisés", type: "text" },
-      { key: SETTING_KEYS.statPartners, label: "Partenaires", type: "text" },
-    ],
-  },
-  {
-    title: "À propos",
-    description:
-      "Textes de la page À propos. Images et membres de l’équipe : Médias.",
-    fields: [
-      {
-        key: SETTING_KEYS.aboutHeroDescription,
-        label: "Sous-titre de l’en-tête",
-        type: "textarea",
-      },
-      {
-        key: SETTING_KEYS.aboutStoryTitle,
-        label: "Titre — Notre histoire",
-        type: "text",
-        placeholder: "Des Colibris porteurs d'espoir",
-      },
-      {
-        key: SETTING_KEYS.aboutMission,
-        label: "Texte — Notre histoire",
-        type: "textarea",
-        hint: "Séparez les paragraphes par une ligne vide.",
-      },
-      {
-        key: SETTING_KEYS.aboutStoryQuote,
-        label: "Citation — Notre histoire",
-        type: "textarea",
-      },
-      {
-        key: SETTING_KEYS.aboutValuesTitle,
-        label: "Titre — Nos valeurs",
-        type: "text",
-      },
-      {
-        key: SETTING_KEYS.aboutValues,
-        label: "Cartes des valeurs",
-        type: "textarea",
-        hint: "Jusqu’à 4 valeurs. Format : titre, puis description, blocs séparés par une ligne vide.",
-      },
-      {
-        key: SETTING_KEYS.aboutColibriTitle,
-        label: "Titre — Pourquoi le Colibri",
-        type: "text",
-      },
-      {
-        key: SETTING_KEYS.aboutColibriText,
-        label: "Texte — Pourquoi le Colibri",
-        type: "textarea",
-      },
-      {
-        key: SETTING_KEYS.aboutCommitmentsTitle,
-        label: "Titre — Nos engagements",
-        type: "text",
-      },
-      {
-        key: SETTING_KEYS.aboutCommitments,
-        label: "Liste des engagements",
-        type: "textarea",
-        hint: "Un engagement par ligne.",
-      },
-      {
-        key: SETTING_KEYS.aboutCtaTitle,
-        label: "Titre — Appel à l’action final",
-        type: "text",
-      },
-      {
-        key: SETTING_KEYS.aboutCtaSubtitle,
-        label: "Texte — Appel à l’action final",
-        type: "textarea",
-      },
-    ],
-  },
-  {
     title: "Pages Contact / Don / Bénévole",
     description: "Sous-titres des en-têtes de ces pages.",
     fields: [
@@ -255,6 +114,44 @@ const sections: SettingsSection[] = [
         type: "password",
         placeholder: "Re-saisir pour modifier",
         hint: "Laissez vide pour conserver le Webhook ID actuel.",
+      },
+    ],
+  },
+  {
+    title: "RIB / virement bancaire",
+    description:
+      "Coordonnées affichées sur la page Faire un don via le bouton RIB.",
+    fields: [
+      {
+        key: SETTING_KEYS.ribAccountHolder,
+        label: "Bénéficiaire",
+        type: "text",
+        placeholder: "Les Colibris Porteurs d'Espoir",
+      },
+      {
+        key: SETTING_KEYS.ribBankName,
+        label: "Banque (optionnel)",
+        type: "text",
+        placeholder: "Nom de la banque",
+      },
+      {
+        key: SETTING_KEYS.ribIban,
+        label: "IBAN",
+        type: "text",
+        placeholder: "FR76 …",
+      },
+      {
+        key: SETTING_KEYS.ribBic,
+        label: "BIC / SWIFT",
+        type: "text",
+        placeholder: "XXXXXXXX",
+      },
+      {
+        key: SETTING_KEYS.ribPdfUrl,
+        label: "Lien PDF du RIB (optionnel)",
+        type: "text",
+        placeholder: "/uploads/rib.pdf",
+        hint: "URL publique du fichier RIB à télécharger (ex. fichier dans Médias).",
       },
     ],
   },
@@ -351,11 +248,15 @@ export function SettingsForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="rounded-xl border bg-[#F8FAFC] p-5 text-sm text-[#6B7280]">
-        Logo, photos du site et membres de l’équipe :{" "}
-        <a href="/admin/medias" className="font-semibold text-colibri-teal hover:underline">
-          Médias
+        Contenu des pages Accueil et À propos :{" "}
+        <a href="/admin/accueil" className="font-semibold text-colibri-teal hover:underline">
+          Accueil
         </a>
-        . Intro équipe aussi dans Médias → Notre équipe.
+        {" · "}
+        <a href="/admin/a-propos" className="font-semibold text-colibri-teal hover:underline">
+          À propos
+        </a>
+        . Ici : contact, SEO, PayPal et RIB.
       </div>
       {sections.map((section) => (
         <div key={section.title} className="space-y-4 rounded-xl border bg-white p-6">

@@ -123,6 +123,21 @@ export const ABOUT_COMMITMENTS = [
   "Responsabilité",
 ] as const;
 
+/** Photos par défaut (voyages au village) — une par engagement. */
+export const ABOUT_COMMITMENT_DEFAULT_IMAGES = [
+  "/uploads/1783597350403-IMG-20251222-WA0024.jpg",
+  "/uploads/1783596825669-IMG-20251221-WA0056.jpg",
+  "/uploads/1783596521237-IMG-20251213-WA0007.jpg",
+  "/uploads/1783530293004-1564553933_0.jpg",
+  "/uploads/1783596119122-szzsz.jpg",
+  "/uploads/1783530284380-consulat.jpg",
+] as const;
+
+export type AboutCommitmentItem = {
+  title: string;
+  imageUrl: string;
+};
+
 export function parseAboutCommitments(raw?: string | null): string[] {
   if (!raw?.trim()) return [...ABOUT_COMMITMENTS];
 
@@ -132,6 +147,32 @@ export function parseAboutCommitments(raw?: string | null): string[] {
     .filter(Boolean);
 
   return items.length > 0 ? items : [...ABOUT_COMMITMENTS];
+}
+
+export function parseAboutCommitmentImages(raw?: string | null): string[] {
+  if (!raw?.trim()) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item) => (typeof item === "string" ? item.trim() : "")).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+export function resolveAboutCommitmentItems(
+  titlesRaw?: string | null,
+  imagesRaw?: string | null
+): AboutCommitmentItem[] {
+  const titles = parseAboutCommitments(titlesRaw);
+  const images = parseAboutCommitmentImages(imagesRaw);
+
+  return titles.map((title, index) => ({
+    title,
+    imageUrl:
+      images[index] ||
+      ABOUT_COMMITMENT_DEFAULT_IMAGES[index % ABOUT_COMMITMENT_DEFAULT_IMAGES.length],
+  }));
 }
 
 export type AboutTeamMember = {

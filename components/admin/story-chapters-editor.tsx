@@ -16,6 +16,7 @@ import { StorySeismeMediaUpload } from "@/components/admin/story-seisme-media-up
 import { StoryPremieresMediaUpload } from "@/components/admin/story-premieres-media-upload";
 import { StoryConfortMediaUpload } from "@/components/admin/story-confort-media-upload";
 import { StoryTerrainMediaUpload } from "@/components/admin/story-terrain-media-upload";
+import { StoryAccompagnementMediaUpload } from "@/components/admin/story-accompagnement-media-upload";
 import { StoryCreationMediaUpload } from "@/components/admin/story-creation-media-upload";
 
 type MediaProps = {
@@ -33,6 +34,7 @@ type MediaProps = {
     videoPosterUrl?: string;
     youtubeUrl?: string;
   };
+  accompagnement: Record<string, string>;
   creationImageUrl?: string;
 };
 
@@ -41,6 +43,7 @@ const CHAPTER_TABS: { id: string; label: string }[] = [
   { id: "premieres-actions", label: "Premières actions" },
   { id: "confort-reconfort", label: "Confort" },
   { id: "terrain-de-foot", label: "Terrain de foot" },
+  { id: "ancrage", label: "Accompagnement" },
   { id: "creation-association", label: "Création" },
 ];
 
@@ -283,6 +286,42 @@ export function StoryChaptersEditor({
             videoUrl={media.terrain.videoUrl}
             videoPosterUrl={media.terrain.videoPosterUrl}
             youtubeUrl={media.terrain.youtubeUrl}
+          />
+        </TabsContent>
+
+        {/* Accompagnement */}
+        <TabsContent value="ancrage" className="space-y-4">
+          <ChapterTextsCard
+            year={chapters["ancrage"]?.year ?? ""}
+            stageLabel={chapters["ancrage"]?.stageLabel ?? ""}
+            title={chapters["ancrage"]?.title ?? ""}
+            hideTitle
+            onYear={(v) => updateChapter("ancrage", { year: v })}
+            onStageLabel={(v) => updateChapter("ancrage", { stageLabel: v })}
+            onTitle={(v) => updateChapter("ancrage", { title: v })}
+          />
+          <SectionsEditor
+            sections={
+              chapters["ancrage"]?.sections?.length
+                ? chapters["ancrage"].sections
+                : [
+                    { heading: "Rester présent", body: "" },
+                    { heading: "Préparer la suite", body: "" },
+                  ]
+            }
+            onChange={(index, field, value) =>
+              updateSection("ancrage", index, field, value)
+            }
+          />
+          <StoryAccompagnementMediaUpload
+            photoUrls={{
+              left1: media.accompagnement.left1 ?? "",
+              left2: media.accompagnement.left2 ?? "",
+              left3: media.accompagnement.left3 ?? "",
+              right1: media.accompagnement.right1 ?? "",
+              right2: media.accompagnement.right2 ?? "",
+              right3: media.accompagnement.right3 ?? "",
+            }}
           />
         </TabsContent>
 

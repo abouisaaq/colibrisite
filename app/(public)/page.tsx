@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { fetchHomePage, fetchGalleryAlbums } from "@/lib/convex-data";
 import { parseSiteLogoHeight } from "@/lib/logo-size";
 import { resolveMissionImages } from "@/lib/mission-images";
@@ -14,6 +15,10 @@ import { PartnersSection } from "@/components/home/partners-section";
 import { GallerySpotlightSection } from "@/components/home/gallery-spotlight-section";
 import { resolveHomeSpotlightMedia } from "@/lib/home-spotlight";
 import { guessGalleryKind } from "@/lib/gallery-media";
+import {
+  orderedVisibleSectionIds,
+  resolveHomeLayout,
+} from "@/lib/page-sections";
 
 export default async function HomePage() {
   const {
@@ -32,6 +37,9 @@ export default async function HomePage() {
   const missionImages = resolveMissionImages(settings);
   const donationImage = resolveSitePageImage(settings, "donation");
   const spotlightMedia = resolveHomeSpotlightMedia(settings);
+  const sectionIds = orderedVisibleSectionIds(resolveHomeLayout(settings)).filter(
+    (id) => id !== "header"
+  );
 
   let spotlightPhotos: { id: string; url: string; alt: string }[] = (
     galleryPhotos ?? []
@@ -63,7 +71,6 @@ export default async function HomePage() {
     })
   );
 
-  // Repli : albums si la query home n’a rien renvoyé
   if (spotlightPhotos.length === 0 || spotlightVideos.length === 0) {
     const albums = await fetchGalleryAlbums();
     const photoByUrl = new Map<string, { id: string; url: string; alt: string }>();
@@ -114,9 +121,10 @@ export default async function HomePage() {
     }
   }
 
-  return (
-    <>
+  const sections: Record<string, ReactNode> = {
+    hero: (
       <HeroSection
+        key="hero"
         title={settings.hero_title ?? "Porter l'espoir là où tout semble perdu"}
         subtitle={
           settings.hero_subtitle ??
@@ -126,13 +134,19 @@ export default async function HomePage() {
         logoUrl={settings.site_logo}
         logoHeight={parseSiteLogoHeight(settings.site_logo_height)}
       />
+    ),
+    stats: (
       <StatBanner
+        key="stats"
         families={settings.stat_families ?? "2500"}
         volunteers={settings.stat_volunteers ?? "180"}
         projects={settings.stat_projects ?? "45"}
         partners={settings.stat_partners ?? "32"}
       />
+    ),
+    mission: (
       <MissionSection
+        key="mission"
         title={settings.mission_title ?? "Notre Mission"}
         text={
           settings.mission_text ??
@@ -144,7 +158,10 @@ export default async function HomePage() {
           "Chaque geste, aussi petit soit-il, peut changer une vie."
         }
       />
+    ),
+    actions: (
       <ActionsGrid
+        key="actions"
         actions={actions.map(
           (action: {
             id: string;
@@ -168,7 +185,10 @@ export default async function HomePage() {
         title={settings.actions_title}
         subtitle={settings.actions_subtitle}
       />
+    ),
+    news_events: (
       <NewsEventsSection
+        key="news_events"
         articles={articles.map(
           (article: {
             id: string;
@@ -209,7 +229,10 @@ export default async function HomePage() {
           })
         )}
       />
+    ),
+    testimonials: (
       <TestimonialsSection
+        key="testimonials"
         testimonials={testimonials.map(
           (t: {
             id: string;
@@ -237,25 +260,37 @@ export default async function HomePage() {
         title={settings.testimonials_title}
         subtitle={settings.testimonials_subtitle}
       />
+    ),
+    gallery: (
       <GallerySpotlightSection
+        key="gallery"
         media={spotlightMedia}
         photos={spotlightPhotos}
         videos={spotlightVideos}
       />
+    ),
+    newsletter: (
       <NewsletterSection
+        key="newsletter"
         title={settings.newsletter_title ?? "Recevez nos nouveautés sur WhatsApp"}
         subtitle={
           settings.newsletter_subtitle ??
           "Inscrivez votre numéro pour recevoir nos actualités, événements et l'impact de votre générosité directement sur WhatsApp."
         }
       />
+    ),
+    cta: (
       <CtaSection
+        key="cta"
         title={settings.cta_title}
         subtitle={settings.cta_subtitle}
         familiesCount={settings.stat_families ?? "500"}
         imageUrl={donationImage}
       />
+    ),
+    partners: (
       <PartnersSection
+        key="partners"
         title={settings.partners_title ?? "Ils nous font confiance"}
         subtitle={
           settings.partners_subtitle ??
@@ -277,6 +312,8 @@ export default async function HomePage() {
           })
         )}
       />
-    </>
-  );
+    ),
+  };
+
+  return <>{sectionIds.map((id) => sections[id] ?? null)}</>;
 }

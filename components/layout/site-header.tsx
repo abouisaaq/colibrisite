@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
+  { href: "/notre-histoire", label: "Notre histoire" },
   { href: "/a-propos", label: "À propos" },
   { href: "/actualites", label: "Actualités" },
   { href: "/evenements", label: "Événements" },
@@ -120,7 +121,7 @@ export function SiteHeader({
               open
                 ? "text-[#111827] hover:bg-black/5"
                 : isHero
-                  ? "header-on-hero-text hover:bg-black/5"
+                  ? "bg-white/90 text-[#111827] shadow-[0_2px_12px_rgba(15,23,42,0.12)] backdrop-blur-md hover:bg-white"
                   : "text-[#111827] hover:bg-black/5"
             )}
             onClick={() => setOpen(!open)}
@@ -174,7 +175,7 @@ export function SiteHeader({
     return (
       <header
         className={cn(
-          "absolute inset-x-0 top-0 z-30 w-full",
+          "absolute inset-x-0 top-0 z-30 w-full hero-header-mobile-light",
           open && "border-b border-[#E5E7EB]/80 bg-white shadow-[0_1px_12px_rgba(0,0,0,0.04)]"
         )}
       >

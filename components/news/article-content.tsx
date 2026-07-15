@@ -3,11 +3,24 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ArticleImageItem } from "@/components/admin/rich-text/article-image-types";
+import type {
+  ArticleImageItem,
+  ImageAlign,
+  MediaItemAspect,
+  MediaObjectFit,
+} from "@/components/admin/rich-text/article-image-types";
 
-type ContentPart =
-  | { type: "html"; html: string }
-  | { type: "carousel"; images: ArticleImageItem[]; key: string };
+type CarouselPart = {
+  type: "carousel";
+  images: ArticleImageItem[];
+  key: string;
+  width: string;
+  align: ImageAlign;
+  itemAspect: MediaItemAspect;
+  objectFit: MediaObjectFit;
+};
+
+type ContentPart = { type: "html"; html: string } | CarouselPart;
 
 function parseImages(el: Element): ArticleImageItem[] {
   const raw = el.getAttribute("data-images");
@@ -25,6 +38,34 @@ function parseImages(el: Element): ArticleImageItem[] {
     src: img.getAttribute("src") || "",
     alt: img.getAttribute("alt") || "",
   }));
+}
+
+function parseAspect(value: string | null): MediaItemAspect {
+  if (
+    value === "4/3" ||
+    value === "16/10" ||
+    value === "1/1" ||
+    value === "16/9" ||
+    value === "auto"
+  ) {
+    return value;
+  }
+  return "16/10";
+}
+
+function parseAlign(value: string | null): ImageAlign {
+  if (value === "left" || value === "right" || value === "center") {
+    return value;
+  }
+  return "center";
+}
+
+function carouselFrameClass(aspect: MediaItemAspect): string {
+  if (aspect === "auto") return "min-h-[220px]";
+  if (aspect === "4/3") return "aspect-[4/3]";
+  if (aspect === "1/1") return "aspect-square";
+  if (aspect === "16/9") return "aspect-video";
+  return "aspect-[16/10]";
 }
 
 function splitArticleHtml(html: string): ContentPart[] {
@@ -55,6 +96,10 @@ function splitArticleHtml(html: string): ContentPart[] {
           type: "carousel",
           images: parseImages(el),
           key: `carousel-${index}`,
+          width: el.getAttribute("data-width") || "100%",
+          align: parseAlign(el.getAttribute("data-align")),
+          itemAspect: parseAspect(el.getAttribute("data-item-aspect")),
+          objectFit: el.getAttribute("data-object-fit") === "cover" ? "cover" : "contain",
         });
         return;
       }
@@ -70,7 +115,19 @@ function splitArticleHtml(html: string): ContentPart[] {
   return parts.length > 0 ? parts : [{ type: "html", html }];
 }
 
-function ArticleCarousel({ images }: { images: ArticleImageItem[] }) {
+function ArticleCarousel({
+  images,
+  width,
+  align,
+  itemAspect,
+  objectFit,
+}: {
+  images: ArticleImageItem[];
+  width: string;
+  align: ImageAlign;
+  itemAspect: MediaItemAspect;
+  objectFit: MediaObjectFit;
+}) {
   const [index, setIndex] = useState(0);
   const count = images.length;
 
@@ -83,14 +140,31 @@ function ArticleCarousel({ images }: { images: ArticleImageItem[] }) {
   };
 
   return (
-    <div className="article-carousel-react not-prose my-8">
-      <div className="relative overflow-hidden rounded-2xl bg-[#0F172A]/5 shadow-md">
-        <div className="relative aspect-[16/10] w-full">
+    <div
+      className={cn(
+        "article-carousel-react not-prose my-8",
+        align === "left" && "mr-auto",
+        align === "right" && "ml-auto",
+        align === "center" && "mx-auto"
+      )}
+      style={{ width, maxWidth: "100%" }}
+    >
+      <div className="relative overflow-hidden rounded-2xl bg-[#F1F5F9] shadow-md">
+        <div
+          className={cn(
+            "relative flex w-full items-center justify-center",
+            carouselFrameClass(itemAspect)
+          )}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={current.src}
             alt={current.alt || ""}
-            className="h-full w-full object-cover"
+            className={cn(
+              "max-h-full max-w-full",
+              itemAspect === "auto" ? "h-auto w-full" : "h-full w-full"
+            )}
+            style={{ objectFit }}
           />
         </div>
 
@@ -122,7 +196,7 @@ function ArticleCarousel({ images }: { images: ArticleImageItem[] }) {
                   onClick={() => setIndex(i)}
                   className={cn(
                     "h-2 w-2 rounded-full transition",
-                    i === index ? "bg-white" : "bg-white/50 hover:bg-white/80"
+                    i === index ? "bg-[#0F172A]" : "bg-[#0F172A]/35 hover:bg-[#0F172A]/55"
                   )}
                 />
               ))}
@@ -167,7 +241,14 @@ export function ArticleContent({ html }: { html: string }) {
             dangerouslySetInnerHTML={{ __html: part.html }}
           />
         ) : (
-          <ArticleCarousel key={part.key} images={part.images} />
+          <ArticleCarousel
+            key={part.key}
+            images={part.images}
+            width={part.width}
+            align={part.align}
+            itemAspect={part.itemAspect}
+            objectFit={part.objectFit}
+          />
         )
       )}
     </div>

@@ -2,7 +2,20 @@
 
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { Trash2 } from "lucide-react";
+import type {
+  ImageAlign,
+  MediaItemAspect,
+  MediaObjectFit,
+} from "@/components/admin/rich-text/article-image-types";
 import type { ArticleImageItem } from "@/components/admin/rich-text/article-image-types";
+
+function aspectClass(aspect: MediaItemAspect): string {
+  if (aspect === "auto") return "h-auto min-h-[120px]";
+  if (aspect === "4/3") return "aspect-[4/3]";
+  if (aspect === "1/1") return "aspect-square";
+  if (aspect === "16/9") return "aspect-video";
+  return "aspect-[16/10]";
+}
 
 export function ArticleImageBlockView({
   node,
@@ -11,6 +24,10 @@ export function ArticleImageBlockView({
 }: NodeViewProps) {
   const images = (node.attrs.images || []) as ArticleImageItem[];
   const isCarousel = node.type.name === "imageCarousel";
+  const width = (node.attrs.width as string) || "100%";
+  const align = (node.attrs.align as ImageAlign) || "center";
+  const itemAspect = (node.attrs.itemAspect as MediaItemAspect) || "16/10";
+  const objectFit = (node.attrs.objectFit as MediaObjectFit) || "contain";
 
   return (
     <NodeViewWrapper
@@ -20,6 +37,12 @@ export function ArticleImageBlockView({
           : "my-4"
       }
       data-drag-handle
+      style={{
+        width,
+        maxWidth: "100%",
+        marginLeft: align === "left" ? 0 : align === "right" ? "auto" : "auto",
+        marginRight: align === "right" ? 0 : align === "left" ? "auto" : "auto",
+      }}
     >
       <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
         <div className="flex items-center justify-between gap-2 border-b border-[#E2E8F0] bg-white px-3 py-2">
@@ -27,6 +50,8 @@ export function ArticleImageBlockView({
             {isCarousel
               ? `Carrousel · ${images.length} photo${images.length > 1 ? "s" : ""}`
               : `Rangée · ${images.length} photo${images.length > 1 ? "s" : ""}`}
+            {" · "}
+            {width} · {itemAspect} · {objectFit}
           </p>
           <button
             type="button"
@@ -43,13 +68,14 @@ export function ArticleImageBlockView({
             {images.map((img, index) => (
               <div
                 key={`${img.src}-${index}`}
-                className="relative h-28 w-44 shrink-0 overflow-hidden rounded-lg bg-[#E2E8F0]"
+                className={`relative w-44 shrink-0 overflow-hidden rounded-lg bg-[#E2E8F0] ${aspectClass(itemAspect)}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={img.src}
                   alt={img.alt || ""}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full"
+                  style={{ objectFit }}
                 />
                 <span className="absolute left-1.5 top-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                   {index + 1}
@@ -67,13 +93,14 @@ export function ArticleImageBlockView({
             {images.map((img, index) => (
               <div
                 key={`${img.src}-${index}`}
-                className="relative aspect-[4/3] overflow-hidden rounded-lg bg-[#E2E8F0]"
+                className={`relative overflow-hidden rounded-lg bg-[#E2E8F0] ${aspectClass(itemAspect)}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={img.src}
                   alt={img.alt || ""}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full"
+                  style={{ objectFit }}
                 />
               </div>
             ))}

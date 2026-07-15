@@ -63,6 +63,19 @@ const sections: SettingsSection[] = [
       { key: SETTING_KEYS.contactPhoneMa, label: "Téléphone Maroc", type: "text" },
       { key: SETTING_KEYS.contactAddress, label: "Adresse", type: "text" },
       {
+        key: SETTING_KEYS.contactMapAddress,
+        label: "Adresse affichée sur la carte",
+        type: "text",
+        hint: "Texte sous la carte sur la page Contact. Laissez vide pour reprendre l’adresse ci-dessus.",
+      },
+      {
+        key: SETTING_KEYS.contactMapEmbedUrl,
+        label: "URL d’intégration carte (OpenStreetMap)",
+        type: "text",
+        placeholder: "https://www.openstreetmap.org/export/embed.html?...",
+        hint: "Collez l’URL « embed » depuis openstreetmap.org. Optionnel : une carte par défaut est utilisée si vide.",
+      },
+      {
         key: SETTING_KEYS.footerTagline,
         label: "Texte du pied de page",
         type: "textarea",

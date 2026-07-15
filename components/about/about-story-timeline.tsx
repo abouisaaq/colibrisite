@@ -194,9 +194,30 @@ function MediaChapterPanel({
   media: AboutStoryMedia;
 }) {
   const videoRight = chapter.mediaPlacement === "video-right";
+
+  const videoEntries = [
+    {
+      videoSrc: media.videoSrc,
+      youtubeUrl: media.youtubeUrl,
+      videoPoster: media.videoPoster,
+    },
+    ...(media.extraVideos ?? []),
+  ];
+
   const video = (
-    <div className="mx-auto w-[120px] shrink-0 sm:w-[160px] lg:mx-0 lg:w-[168px] xl:w-[180px]">
-      <StoryVideo media={media} label={chapter.year} />
+    <div className="mx-auto flex w-[120px] shrink-0 flex-col gap-2 sm:w-[160px] lg:mx-0 lg:w-[168px] xl:w-[180px]">
+      {videoEntries.map((entry, index) => (
+        <StoryVideo
+          key={`story-video-${index}`}
+          media={{
+            ...media,
+            videoSrc: entry.videoSrc,
+            youtubeUrl: entry.youtubeUrl,
+            videoPoster: entry.videoPoster,
+          }}
+          label={`${chapter.year}${videoEntries.length > 1 ? ` — vidéo ${index + 1}` : ""}`}
+        />
+      ))}
     </div>
   );
   const photos = (
@@ -206,7 +227,10 @@ function MediaChapterPanel({
         videoRight ? "lg:justify-start" : "lg:justify-end"
       )}
     >
-      <StoryPhotoStack photos={media.photos} />
+      <StoryPhotoStack
+        photos={media.photos}
+        items={media.photoList}
+      />
     </div>
   );
   const text = (

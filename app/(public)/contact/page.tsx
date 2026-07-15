@@ -35,6 +35,12 @@ export default async function ContactPage() {
             email={settings.contact_email ?? "contact@colibris-espoir.org"}
             phones={getContactPhones(settings)}
             address={settings.contact_address ?? "12 Rue de l'Espoir, 75011 Paris, France"}
+            mapAddress={
+              settings.contact_map_address?.trim() ||
+              settings.contact_address?.trim() ||
+              "12 Rue de l'Espoir, 75011 Paris, France"
+            }
+            mapEmbedUrl={settings.contact_map_embed_url}
           />
         </div>
       </section>

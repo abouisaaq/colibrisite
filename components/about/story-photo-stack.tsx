@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-type StoryPhotoItem = { src: string; alt: string };
+type StoryPhotoItem = { src: string; alt?: string };
 
 function StoryPhotoLightbox({
   images,
@@ -146,12 +146,12 @@ function StoryPhotoLightbox({
 
 function StoryPhotoFrame({
   src,
-  alt,
+  alt = "",
   className,
   onOpen,
 }: {
   src: string;
-  alt: string;
+  alt?: string;
   className?: string;
   onOpen: () => void;
 }) {
@@ -192,18 +192,22 @@ function StoryPhotoFrame({
 
 export function StoryPhotoStack({
   photos,
+  items: itemsOverride,
   layout = "stack",
   className,
 }: {
   photos: AboutStoryPhotos;
+  items?: StoryPhotoItem[];
   layout?: "stack" | "row";
   className?: string;
 }) {
-  const items = [
-    { src: photos.main, alt: photos.mainAlt ?? "" },
-    { src: photos.left, alt: photos.leftAlt ?? "" },
-    { src: photos.right, alt: photos.rightAlt ?? "" },
-  ].filter((item) => Boolean(item.src));
+  const items =
+    itemsOverride ??
+    [
+      { src: photos.main, alt: photos.mainAlt ?? "" },
+      { src: photos.left, alt: photos.leftAlt ?? "" },
+      { src: photos.right, alt: photos.rightAlt ?? "" },
+    ].filter((item) => Boolean(item.src));
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);

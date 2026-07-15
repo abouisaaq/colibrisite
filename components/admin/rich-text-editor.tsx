@@ -32,10 +32,15 @@ import {
   ImageRow,
   ResizableImage,
   type ImageAlign,
+  type MediaItemAspect,
+  type MediaObjectFit,
 } from "@/components/admin/rich-text/article-image-extensions";
 import type { ArticleImageItem } from "@/components/admin/rich-text/article-image-types";
-import { ArticleVideo } from "@/components/admin/rich-text/article-video-extension";
-import type { ArticleVideoAspect } from "@/components/admin/rich-text/article-video-types";
+import { ArticleVideo, VideoRow } from "@/components/admin/rich-text/article-video-extension";
+import type {
+  ArticleVideoAspect,
+  ArticleVideoItem,
+} from "@/components/admin/rich-text/article-video-types";
 import { parseYouTubeVideoId } from "@/lib/about-story-media";
 import { uploadVideoToConvex } from "@/lib/client-video-upload";
 import { toast } from "sonner";
@@ -67,6 +72,15 @@ const VIDEO_ASPECTS: { aspect: ArticleVideoAspect; label: string; title: string 
     { aspect: "4/3", label: "4:3", title: "Classique" },
     { aspect: "1/1", label: "1:1", title: "Carré" },
     { aspect: "9/16", label: "9:16", title: "Vertical (Stories)" },
+  ];
+
+const MEDIA_ASPECTS: { aspect: MediaItemAspect; label: string; title: string }[] =
+  [
+    { aspect: "16/10", label: "16:10", title: "Paysage article" },
+    { aspect: "16/9", label: "16:9", title: "Paysage large" },
+    { aspect: "4/3", label: "4:3", title: "Classique" },
+    { aspect: "1/1", label: "1:1", title: "Carré" },
+    { aspect: "auto", label: "Auto", title: "Hauteur naturelle" },
   ];
 
 function ToolbarButton({
@@ -133,6 +147,7 @@ export function RichTextEditor({
   const rowInputRef = useRef<HTMLInputElement>(null);
   const carouselInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const videoRowInputRef = useRef<HTMLInputElement>(null);
   const uploadingRef = useRef(false);
   const [, setTick] = useState(0);
 
@@ -151,6 +166,7 @@ export function RichTextEditor({
       ImageRow,
       ImageCarousel,
       ArticleVideo,
+      VideoRow,
       Placeholder.configure({
         placeholder,
       }),
@@ -211,6 +227,22 @@ export function RichTextEditor({
     (attrs: Record<string, string>) => {
       if (!editor) return;
       editor.chain().focus().updateAttributes("articleVideo", attrs).run();
+    },
+    [editor]
+  );
+
+  const setMediaBlockAttr = useCallback(
+    (attrs: Record<string, string>) => {
+      if (!editor) return;
+      const type = editor.isActive("imageRow")
+        ? "imageRow"
+        : editor.isActive("imageCarousel")
+          ? "imageCarousel"
+          : editor.isActive("videoRow")
+            ? "videoRow"
+            : null;
+      if (!type) return;
+      editor.chain().focus().updateAttributes(type, attrs).run();
     },
     [editor]
   );
@@ -329,7 +361,13 @@ export function RichTextEditor({
           .focus()
           .insertContent({
             type: kind,
-            attrs: { images },
+            attrs: {
+              images,
+              width: "100%",
+              align: "center",
+              itemAspect: "16/10",
+              objectFit: "contain",
+            },
           })
           .run();
         toast.success(
@@ -346,6 +384,93 @@ export function RichTextEditor({
     [editor]
   );
 
+  const insertVideoRowYoutube = useCallback(() => {
+    if (!editor) return;
+    const url1 = window.prompt(
+      "URL YouTube — vidéo 1",
+      "https://www.youtube.com/watch?v="
+    );
+    if (url1 === null) return;
+    const id1 = parseYouTubeVideoId(url1.trim());
+    if (!id1) {
+      toast.error("Première URL YouTube invalide");
+      return;
+    }
+    const url2 = window.prompt(
+      "URL YouTube — vidéo 2 (optionnel, laissez vide pour une seule vidéo)",
+      "https://www.youtube.com/watch?v="
+    );
+    if (url2 === null) return;
+
+    const videos: ArticleVideoItem[] = [{ youtubeId: id1, src: "" }];
+    if (url2.trim()) {
+      const id2 = parseYouTubeVideoId(url2.trim());
+      if (!id2) {
+        toast.error("Deuxième URL YouTube invalide");
+        return;
+      }
+      videos.push({ youtubeId: id2, src: "" });
+    }
+
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "videoRow",
+        attrs: {
+          videos,
+          width: "100%",
+          align: "center",
+          aspect: "16/9",
+        },
+      })
+      .run();
+    toast.success("Rangée de vidéos YouTube ajoutée");
+  }, [editor]);
+
+  const handleVideoRowFiles = useCallback(
+    async (files: FileList) => {
+      if (!editor || uploadingRef.current) return;
+      if (files.length === 0) return;
+      if (files.length > 2) {
+        toast.error("Maximum 2 vidéos sur une rangée");
+        return;
+      }
+
+      uploadingRef.current = true;
+      try {
+        toast.message(`Téléversement de ${files.length} vidéo${files.length > 1 ? "s" : ""}…`);
+        const videos: ArticleVideoItem[] = [];
+        for (const file of Array.from(files)) {
+          const meta = await uploadVideoToConvex(file);
+          const media = await finalizeUploadedMedia(meta);
+          videos.push({ src: media.url, youtubeId: "", poster: "" });
+        }
+
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "videoRow",
+            attrs: {
+              videos,
+              width: "100%",
+              align: "center",
+              aspect: "16/9",
+            },
+          })
+          .run();
+        toast.success("Rangée de vidéos ajoutée");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Erreur téléversement");
+      } finally {
+        uploadingRef.current = false;
+        if (videoRowInputRef.current) videoRowInputRef.current.value = "";
+      }
+    },
+    [editor]
+  );
+
   if (!editor) {
     return (
       <div className="min-h-[320px] animate-pulse rounded-xl border border-[#E8EDF3] bg-[#F8FAFC]" />
@@ -354,6 +479,17 @@ export function RichTextEditor({
 
   const imageSelected = editor.isActive("image");
   const videoSelected = editor.isActive("articleVideo");
+  const mediaBlockSelected =
+    editor.isActive("imageRow") ||
+    editor.isActive("imageCarousel") ||
+    editor.isActive("videoRow");
+  const mediaBlockType = editor.isActive("imageRow")
+    ? "imageRow"
+    : editor.isActive("imageCarousel")
+      ? "imageCarousel"
+      : editor.isActive("videoRow")
+        ? "videoRow"
+        : null;
   const currentWidth =
     (editor.getAttributes("image").width as string | undefined) ?? "100%";
   const currentAlign =
@@ -366,6 +502,26 @@ export function RichTextEditor({
   const videoAspect =
     (editor.getAttributes("articleVideo").aspect as ArticleVideoAspect | undefined) ??
     "16/9";
+  const blockWidth =
+    (mediaBlockType
+      ? (editor.getAttributes(mediaBlockType).width as string | undefined)
+      : undefined) ?? "100%";
+  const blockAlign =
+    (mediaBlockType
+      ? (editor.getAttributes(mediaBlockType).align as ImageAlign | undefined)
+      : undefined) ?? "center";
+  const blockItemAspect =
+    (mediaBlockType === "imageRow" || mediaBlockType === "imageCarousel"
+      ? (editor.getAttributes(mediaBlockType).itemAspect as MediaItemAspect | undefined)
+      : undefined) ?? "16/10";
+  const blockObjectFit =
+    (mediaBlockType === "imageRow" || mediaBlockType === "imageCarousel"
+      ? (editor.getAttributes(mediaBlockType).objectFit as MediaObjectFit | undefined)
+      : undefined) ?? "contain";
+  const blockVideoAspect =
+    (mediaBlockType === "videoRow"
+      ? (editor.getAttributes("videoRow").aspect as ArticleVideoAspect | undefined)
+      : undefined) ?? "16/9";
 
   return (
     <div className="overflow-hidden rounded-xl border border-[#E8EDF3] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.03)]">
@@ -488,6 +644,18 @@ export function RichTextEditor({
             if (file) void handleVideoFile(file);
           }}
         />
+        <input
+          ref={videoRowInputRef}
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime,video/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) {
+              void handleVideoRowFiles(e.target.files);
+            }
+          }}
+        />
 
         <ToolbarButton label="Insérer une image" onClick={() => imageInputRef.current?.click()}>
           <ImagePlus className="h-4 w-4" />
@@ -510,6 +678,18 @@ export function RichTextEditor({
         <ToolbarButton
           label="Vidéo fichier (MP4, WebM… max. 80 Mo)"
           onClick={() => videoInputRef.current?.click()}
+        >
+          <Film className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Rangée vidéos YouTube (max. 2)"
+          onClick={insertVideoRowYoutube}
+        >
+          <Video className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Rangée vidéos fichier (max. 2)"
+          onClick={() => videoRowInputRef.current?.click()}
         >
           <Film className="h-4 w-4" />
         </ToolbarButton>
@@ -597,6 +777,86 @@ export function RichTextEditor({
           </>
         ) : null}
 
+        {mediaBlockSelected ? (
+          <>
+            <span className="mx-1 h-5 w-px bg-[#E2E8F0]" aria-hidden />
+            <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+              Bloc
+            </span>
+            {IMAGE_SIZES.map((size) => (
+              <ToolbarButton
+                key={`b-${size.width}`}
+                label={size.title}
+                active={blockWidth === size.width}
+                onClick={() => setMediaBlockAttr({ width: size.width })}
+                className="text-[11px] font-bold"
+              >
+                {size.label}
+              </ToolbarButton>
+            ))}
+            <span className="mx-1 h-5 w-px bg-[#E2E8F0]" aria-hidden />
+            {IMAGE_ALIGNS.map(({ align, label, icon: Icon }) => (
+              <ToolbarButton
+                key={`b-${align}`}
+                label={label}
+                active={blockAlign === align}
+                onClick={() => setMediaBlockAttr({ align })}
+              >
+                <Icon className="h-4 w-4" />
+              </ToolbarButton>
+            ))}
+            {mediaBlockType === "imageRow" || mediaBlockType === "imageCarousel" ? (
+              <>
+                <span className="mx-1 h-5 w-px bg-[#E2E8F0]" aria-hidden />
+                {MEDIA_ASPECTS.map(({ aspect, label, title }) => (
+                  <ToolbarButton
+                    key={`ba-${aspect}`}
+                    label={title}
+                    active={blockItemAspect === aspect}
+                    onClick={() => setMediaBlockAttr({ itemAspect: aspect })}
+                    className="text-[11px] font-bold"
+                  >
+                    {label}
+                  </ToolbarButton>
+                ))}
+                <span className="mx-1 h-5 w-px bg-[#E2E8F0]" aria-hidden />
+                <ToolbarButton
+                  label="Affichage complet (contain)"
+                  active={blockObjectFit === "contain"}
+                  onClick={() => setMediaBlockAttr({ objectFit: "contain" })}
+                  className="text-[11px] font-bold"
+                >
+                  Complet
+                </ToolbarButton>
+                <ToolbarButton
+                  label="Remplir le cadre (cover)"
+                  active={blockObjectFit === "cover"}
+                  onClick={() => setMediaBlockAttr({ objectFit: "cover" })}
+                  className="text-[11px] font-bold"
+                >
+                  Remplir
+                </ToolbarButton>
+              </>
+            ) : null}
+            {mediaBlockType === "videoRow" ? (
+              <>
+                <span className="mx-1 h-5 w-px bg-[#E2E8F0]" aria-hidden />
+                {VIDEO_ASPECTS.map(({ aspect, label, title }) => (
+                  <ToolbarButton
+                    key={`bva-${aspect}`}
+                    label={title}
+                    active={blockVideoAspect === aspect}
+                    onClick={() => setMediaBlockAttr({ aspect })}
+                    className="text-[11px] font-bold"
+                  >
+                    {label}
+                  </ToolbarButton>
+                ))}
+              </>
+            ) : null}
+          </>
+        ) : null}
+
         <span className="mx-1 h-5 w-px bg-[#E2E8F0]" aria-hidden />
 
         <ToolbarButton
@@ -620,8 +880,8 @@ export function RichTextEditor({
       <div className="border-t border-[#E8EDF3] bg-[#F8FAFC] px-3 py-2">
         <p className="text-[11px] leading-relaxed text-[#94A3B8]">
           Images : taille S–XL et alignement. Rangée (max. 4) · Carrousel (max.
-          12). Vidéos : YouTube ou fichier MP4/WebM — puis taille, alignement et
-          format (16:9, 4:3, carré, vertical).
+          12) avec ratio et affichage complet. Vidéos : YouTube ou fichier, rangée
+          (max. 2) — puis taille, alignement et format.
         </p>
       </div>
     </div>

@@ -20,6 +20,12 @@ export type AboutStoryPhotos = {
   rightAlt?: string;
 };
 
+export type AboutStoryVideo = {
+  videoSrc?: string;
+  youtubeUrl?: string;
+  videoPoster?: string;
+};
+
 export type AboutStoryMedia = {
   /** Vidéo uploadée (Convex) — utilisée si pas de YouTube */
   videoSrc?: string;
@@ -28,6 +34,10 @@ export type AboutStoryMedia = {
   /** Poster / vignette si pas de vidéo ou avant lecture */
   videoPoster?: string;
   photos: AboutStoryPhotos;
+  /** Liste étendue de photos (remplace main/left/right si présente) */
+  photoList?: { src: string; alt?: string }[];
+  /** Vidéos supplémentaires empilées (après la vidéo principale) */
+  extraVideos?: AboutStoryVideo[];
 };
 
 /** Mise en page asymétrique : texte+photos / photos+texte */

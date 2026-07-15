@@ -905,6 +905,46 @@ export async function saveStoryTerrainYoutubeUrl(url: string) {
   revalidateStoryPages();
 }
 
+export async function uploadStoryTerrainVideo2(meta: UploadedMediaMeta) {
+  await requireAdmin();
+  assertVideoMeta(meta);
+  const media = await finalizeUploadedMedia(meta);
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.video2File, media.url);
+  revalidateStoryPages();
+  return media.url;
+}
+
+export async function uploadStoryTerrainVideo2Poster(formData: FormData) {
+  await requireAdmin();
+  const media = await uploadFile(formData);
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.video2Poster, media.url);
+  revalidateStoryPages();
+  return media.url;
+}
+
+export async function removeStoryTerrainVideo2Poster() {
+  await requireAdmin();
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.video2Poster, "");
+  revalidateStoryPages();
+}
+
+export async function removeStoryTerrainVideo2() {
+  await requireAdmin();
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.video2File, "");
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.video2Poster, "");
+  revalidateStoryPages();
+}
+
+export async function saveStoryTerrainYoutubeUrl2(url: string) {
+  await requireAdmin();
+  const trimmed = url.trim();
+  if (trimmed && !parseYouTubeVideoId(trimmed)) {
+    throw new Error("Lien YouTube invalide");
+  }
+  await upsertSetting(STORY_TERRAIN_SETTING_KEYS.youtubeUrl2, trimmed);
+  revalidateStoryPages();
+}
+
 export async function uploadStoryCreationImage(formData: FormData) {
   await requireAdmin();
   const media = await uploadFile(formData);

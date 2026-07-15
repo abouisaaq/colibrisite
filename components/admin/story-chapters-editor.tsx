@@ -29,10 +29,16 @@ type MediaProps = {
   premieres: Record<string, string>;
   confort: Record<string, string>;
   terrain: {
-    photos: { photo1: string; photo2: string; photo3: string };
+    photos: Record<
+      "photo1" | "photo2" | "photo3" | "photo4" | "photo5" | "photo6" | "photo7",
+      string
+    >;
     videoUrl?: string;
     videoPosterUrl?: string;
     youtubeUrl?: string;
+    video2Url?: string;
+    video2PosterUrl?: string;
+    youtubeUrl2?: string;
   };
   accompagnement: Record<string, string>;
   creationImageUrl?: string;
@@ -286,6 +292,9 @@ export function StoryChaptersEditor({
             videoUrl={media.terrain.videoUrl}
             videoPosterUrl={media.terrain.videoPosterUrl}
             youtubeUrl={media.terrain.youtubeUrl}
+            video2Url={media.terrain.video2Url}
+            video2PosterUrl={media.terrain.video2PosterUrl}
+            youtubeUrl2={media.terrain.youtubeUrl2}
           />
         </TabsContent>
 

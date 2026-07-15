@@ -18,7 +18,12 @@ interface ContactFormProps {
   email: string;
   phones: ContactPhone[];
   address: string;
+  mapAddress: string;
+  mapEmbedUrl?: string;
 }
+
+const DEFAULT_MAP_EMBED_URL =
+  "https://www.openstreetmap.org/export/embed.html?bbox=2.365%2C48.851%2C2.395%2C48.867&layer=mapnik&marker=48.8590576%2C2.3800617";
 
 const fieldClass =
   "mt-2 h-11 rounded-xl border-[#E8EDF3] bg-[#F8FAFC]/80 px-3.5 text-base shadow-none transition-all duration-300 placeholder:text-[#94A3B8] focus-visible:border-colibri-teal focus-visible:bg-white focus-visible:ring-colibri-teal/20 sm:text-[15px]";
@@ -82,7 +87,13 @@ function ContactInfoCard({
   );
 }
 
-export function ContactForm({ email, phones, address }: ContactFormProps) {
+export function ContactForm({
+  email,
+  phones,
+  address,
+  mapAddress,
+  mapEmbedUrl,
+}: ContactFormProps) {
   const [isPending, startTransition] = useTransition();
   const sectionRef = useRef<HTMLDivElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.12 });
@@ -296,8 +307,8 @@ export function ContactForm({ email, phones, address }: ContactFormProps) {
             </div>
             <div className="relative h-56 overflow-hidden bg-[#F1F5F9] sm:h-64">
               <iframe
-                title="12 Rue de l'Espoir, 75011 Paris, France"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=2.365%2C48.851%2C2.395%2C48.867&layer=mapnik&marker=48.8590576%2C2.3800617"
+                title={mapAddress}
+                src={mapEmbedUrl?.trim() || DEFAULT_MAP_EMBED_URL}
                 className="h-full w-full border-0 grayscale-[20%] contrast-[1.02]"
                 loading="lazy"
               />
@@ -305,7 +316,7 @@ export function ContactForm({ email, phones, address }: ContactFormProps) {
             <div className="border-t border-[#E8EDF3] px-5 py-3.5">
               <p className="inline-flex items-start gap-2 text-[13px] leading-snug text-[#64748B]">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-colibri-teal" aria-hidden />
-                12 Rue de l&apos;Espoir, 75011 Paris, France
+                {mapAddress}
               </p>
             </div>
           </motion.div>

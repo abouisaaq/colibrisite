@@ -127,6 +127,15 @@ export const deleteMessage = bridgedMutation({
   },
 });
 
+export const deleteVolunteer = bridgedMutation({
+  args: { id: v.id("volunteers") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return null;
+  },
+});
+
 export const updateVolunteerStatus = bridgedMutation({
   args: {
     id: v.id("volunteers"),

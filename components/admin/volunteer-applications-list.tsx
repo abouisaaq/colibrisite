@@ -1,14 +1,35 @@
+"use client";
+
+import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { VolunteerStatusButtons } from "@/components/admin/volunteer-status-buttons";
+import { AdminPanel } from "@/components/admin/admin-panel";
+import { deleteVolunteer } from "@/actions/admin";
 import { formatDate } from "@/lib/utils";
 import {
   formatVolunteerAvailability,
   formatVolunteerDomains,
   VOLUNTEER_STATUS_LABELS,
 } from "@/lib/volunteer-options";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-type VolunteerApplication = {
+export type VolunteerApplication = {
   id: string;
   firstName: string;
   lastName: string;
@@ -21,6 +42,21 @@ type VolunteerApplication = {
   status: "NEW" | "REVIEWING" | "ACCEPTED" | "REJECTED";
   createdAt: Date;
 };
+
+function statusVariant(status: VolunteerApplication["status"]) {
+  switch (status) {
+    case "NEW":
+      return "default" as const;
+    case "REVIEWING":
+      return "secondary" as const;
+    case "ACCEPTED":
+      return "secondary" as const;
+    case "REJECTED":
+      return "outline" as const;
+    default:
+      return "secondary" as const;
+  }
+}
 
 function DetailItem({
   label,
@@ -66,121 +102,261 @@ function TagList({ items }: { items: string }) {
   );
 }
 
-function statusVariant(status: VolunteerApplication["status"]) {
-  switch (status) {
-    case "NEW":
-      return "default" as const;
-    case "REVIEWING":
-      return "secondary" as const;
-    case "ACCEPTED":
-      return "secondary" as const;
-    case "REJECTED":
-      return "outline" as const;
-    default:
-      return "secondary" as const;
+function VolunteerDetailDialog({
+  volunteer,
+  open,
+  onOpenChange,
+  onDeleted,
+}: {
+  volunteer: VolunteerApplication | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDeleted: () => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+
+  if (!volunteer) return null;
+
+  const current = volunteer;
+  const availability = formatVolunteerAvailability(current.availability);
+  const domains = formatVolunteerDomains(current.domains);
+
+  function handleDelete() {
+    const confirmed = window.confirm(
+      `Supprimer la candidature de ${current.firstName} ${current.lastName} ? Cette action est irréversible.`
+    );
+    if (!confirmed) return;
+
+    startTransition(async () => {
+      try {
+        await deleteVolunteer(current.id);
+        toast.success("Candidature supprimée");
+        onOpenChange(false);
+        onDeleted();
+      } catch {
+        toast.error("Erreur lors de la suppression");
+      }
+    });
   }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex flex-wrap items-center gap-2 pr-6">
+            <span>
+              {current.firstName} {current.lastName}
+            </span>
+            <Badge variant={statusVariant(current.status)}>
+              {VOLUNTEER_STATUS_LABELS[current.status] ?? current.status}
+            </Badge>
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Candidature reçue le {formatDate(current.createdAt)}
+          </p>
+        </DialogHeader>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <DetailItem
+            label="Email"
+            value={current.email}
+            href={`mailto:${current.email}`}
+          />
+          <DetailItem
+            label="Téléphone"
+            value={current.phone ?? "—"}
+            href={current.phone ? `tel:${current.phone}` : undefined}
+          />
+          <DetailItem label="Compétences" value={current.skills ?? "—"} />
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
+              Disponibilités
+            </p>
+            <TagList items={availability} />
+          </div>
+          <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
+              Domaines souhaités
+            </p>
+            <TagList items={domains} />
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
+            Message
+          </p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#111827]">
+            {current.message?.trim() || "—"}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-[#E5E7EB] pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-3 text-sm text-[#6B7280]">
+            <a
+              href={`mailto:${current.email}`}
+              className="inline-flex items-center gap-1.5 hover:text-colibri-teal"
+            >
+              <Mail className="h-4 w-4" />
+              Contacter par email
+            </a>
+            {current.phone ? (
+              <a
+                href={`tel:${current.phone}`}
+                className="inline-flex items-center gap-1.5 hover:text-colibri-teal"
+              >
+                <Phone className="h-4 w-4" />
+                Appeler
+              </a>
+            ) : null}
+          </div>
+          <VolunteerStatusButtons id={current.id} status={current.status} />
+        </div>
+
+        <div className="flex justify-end border-t border-[#E5E7EB] pt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isPending}
+            className="text-destructive hover:text-destructive"
+            onClick={handleDelete}
+          >
+            <Trash2 className="mr-1.5 h-4 w-4" />
+            Supprimer la candidature
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function VolunteerApplicationsList({
-  volunteers,
+  volunteers: initialVolunteers,
 }: {
   volunteers: VolunteerApplication[];
 }) {
+  const [volunteers, setVolunteers] = useState(initialVolunteers);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const selectedVolunteer =
+    volunteers.find((v) => v.id === selectedId) ?? null;
+
+  function openVolunteer(id: string) {
+    setSelectedId(id);
+    setDialogOpen(true);
+  }
+
+  function handleQuickDelete(volunteer: VolunteerApplication) {
+    const confirmed = window.confirm(
+      `Supprimer la candidature de ${volunteer.firstName} ${volunteer.lastName} ?`
+    );
+    if (!confirmed) return;
+
+    startTransition(async () => {
+      try {
+        await deleteVolunteer(volunteer.id);
+        setVolunteers((prev) => prev.filter((v) => v.id !== volunteer.id));
+        if (selectedId === volunteer.id) {
+          setDialogOpen(false);
+          setSelectedId(null);
+        }
+        toast.success("Candidature supprimée");
+      } catch {
+        toast.error("Erreur lors de la suppression");
+      }
+    });
+  }
+
   if (volunteers.length === 0) {
     return (
-      <div className="rounded-xl border bg-white p-8 text-center text-sm text-muted-foreground">
-        Aucune candidature bénévole pour le moment.
-      </div>
+      <AdminPanel>
+        <div className="p-8 text-center text-sm text-muted-foreground">
+          Aucune candidature bénévole pour le moment.
+        </div>
+      </AdminPanel>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {volunteers.map((volunteer) => {
-        const availability = formatVolunteerAvailability(volunteer.availability);
-        const domains = formatVolunteerDomains(volunteer.domains);
-
-        return (
-          <article
-            key={volunteer.id}
-            className="rounded-xl border bg-white p-5 shadow-[0_4px_24px_rgba(15,23,42,0.04)] sm:p-6"
-          >
-            <div className="flex flex-col gap-4 border-b border-[#E5E7EB] pb-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-colibri-blue">
+    <>
+      <AdminPanel
+        title="Candidatures"
+        description="Cliquez sur une ligne pour voir le détail complet."
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nom</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Téléphone</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="w-[52px]">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {volunteers.map((volunteer) => (
+              <TableRow
+                key={volunteer.id}
+                className="cursor-pointer"
+                onClick={() => openVolunteer(volunteer.id)}
+              >
+                <TableCell className="font-medium text-colibri-blue">
                   {volunteer.firstName} {volunteer.lastName}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Candidature reçue le {formatDate(volunteer.createdAt)}
-                </p>
-              </div>
-              <Badge variant={statusVariant(volunteer.status)}>
-                {VOLUNTEER_STATUS_LABELS[volunteer.status] ?? volunteer.status}
-              </Badge>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              <DetailItem
-                label="Email"
-                value={volunteer.email}
-                href={`mailto:${volunteer.email}`}
-              />
-              <DetailItem
-                label="Téléphone"
-                value={volunteer.phone ?? "—"}
-                href={volunteer.phone ? `tel:${volunteer.phone}` : undefined}
-              />
-              <DetailItem label="Compétences" value={volunteer.skills ?? "—"} />
-            </div>
-
-            <div className="mt-3 grid gap-3 lg:grid-cols-2">
-              <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
-                  Disponibilités
-                </p>
-                <TagList items={availability} />
-              </div>
-              <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
-                  Domaines souhaités
-                </p>
-                <TagList items={domains} />
-              </div>
-            </div>
-
-            <div className="mt-3 rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
-                Message
-              </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#111827]">
-                {volunteer.message?.trim() || "—"}
-              </p>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-3 border-t border-[#E5E7EB] pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap gap-3 text-sm text-[#6B7280]">
-                <a
-                  href={`mailto:${volunteer.email}`}
-                  className="inline-flex items-center gap-1.5 hover:text-colibri-teal"
-                >
-                  <Mail className="h-4 w-4" />
-                  Contacter par email
-                </a>
-                {volunteer.phone ? (
-                  <a
-                    href={`tel:${volunteer.phone}`}
-                    className="inline-flex items-center gap-1.5 hover:text-colibri-teal"
+                </TableCell>
+                <TableCell className="max-w-[180px] truncate">
+                  {volunteer.email}
+                </TableCell>
+                <TableCell>{volunteer.phone ?? "—"}</TableCell>
+                <TableCell>
+                  <Badge variant={statusVariant(volunteer.status)}>
+                    {VOLUNTEER_STATUS_LABELS[volunteer.status] ?? volunteer.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-[#64748B]">
+                  {formatDate(volunteer.createdAt)}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={isPending}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    aria-label={`Supprimer ${volunteer.firstName} ${volunteer.lastName}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickDelete(volunteer);
+                    }}
                   >
-                    <Phone className="h-4 w-4" />
-                    Appeler
-                  </a>
-                ) : null}
-              </div>
-              <VolunteerStatusButtons id={volunteer.id} status={volunteer.status} />
-            </div>
-          </article>
-        );
-      })}
-    </div>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </AdminPanel>
+
+      <VolunteerDetailDialog
+        volunteer={selectedVolunteer}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onDeleted={() => {
+          if (selectedId) {
+            setVolunteers((prev) => prev.filter((v) => v.id !== selectedId));
+            setSelectedId(null);
+          }
+        }}
+      />
+    </>
   );
 }

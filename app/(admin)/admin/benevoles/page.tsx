@@ -23,7 +23,7 @@ export default async function AdminVolunteersPage() {
       <AdminPageHeader
         eyebrow="Engagement"
         title="Bénévoles"
-        description="Toutes les coordonnées et informations des candidatures bénévoles"
+        description="Liste des candidatures — cliquez sur une ligne pour le détail."
       />
 
       <VolunteerApplicationsList volunteers={volunteers} />

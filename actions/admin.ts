@@ -456,6 +456,14 @@ export async function deleteMessage(id: string) {
   revalidatePath("/admin/messages");
 }
 
+export async function deleteVolunteer(id: string) {
+  await requireAuth();
+  await client().mutation(api.publicForms.deleteVolunteer, {
+    id: id as Id<"volunteers">,
+  });
+  revalidatePath("/admin/benevoles");
+}
+
 export async function createUser(data: unknown) {
   await requireAdmin();
   const parsed = userSchema.parse(data);

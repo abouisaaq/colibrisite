@@ -115,3 +115,37 @@ export const ensureCompleted = bridgedMutation({
     });
   },
 });
+
+/** Enregistre un don PayPal.me (ou autre) saisi manuellement dans l’admin. */
+export const createManual = bridgedMutation({
+  args: {
+    amount: v.number(),
+    currency: v.string(),
+    frequency: v.union(v.literal("ONE_TIME"), v.literal("MONTHLY")),
+    donorName: v.optional(v.string()),
+    donorEmail: v.optional(v.string()),
+  },
+  returns: v.id("donations"),
+  handler: async (ctx, args) => {
+    if (!(args.amount > 0)) {
+      throw new Error("Montant invalide");
+    }
+    return await ctx.db.insert("donations", {
+      amount: args.amount,
+      currency: args.currency || "EUR",
+      frequency: args.frequency,
+      donorName: args.donorName,
+      donorEmail: args.donorEmail,
+      status: "COMPLETED",
+    });
+  },
+});
+
+export const remove = bridgedMutation({
+  args: { id: v.id("donations") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return null;
+  },
+});

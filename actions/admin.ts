@@ -464,6 +464,36 @@ export async function deleteVolunteer(id: string) {
   revalidatePath("/admin/benevoles");
 }
 
+export async function createManualDonation(data: {
+  amount: number;
+  donorName?: string;
+  donorEmail?: string;
+}) {
+  await requireAuth();
+  const amount = Number(data.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("Montant invalide");
+  }
+  await client().mutation(api.donations.createManual, {
+    amount,
+    currency: "EUR",
+    frequency: "ONE_TIME",
+    donorName: data.donorName?.trim() || undefined,
+    donorEmail: data.donorEmail?.trim() || undefined,
+  });
+  revalidatePath("/admin/dons");
+  revalidatePath("/admin");
+}
+
+export async function deleteDonation(id: string) {
+  await requireAuth();
+  await client().mutation(api.donations.remove, {
+    id: id as Id<"donations">,
+  });
+  revalidatePath("/admin/dons");
+  revalidatePath("/admin");
+}
+
 export async function createUser(data: unknown) {
   await requireAdmin();
   const parsed = userSchema.parse(data);

@@ -41,7 +41,7 @@ export const HOME_SECTIONS: CmsSectionDef[] = [
   {
     id: "stats",
     label: "Chiffres",
-    description: "Familles, bénévoles, projets, partenaires.",
+    description: "Actions vers les familles, bénévoles, projets, partenaires.",
     href: "/admin/accueil/chiffres",
   },
   {

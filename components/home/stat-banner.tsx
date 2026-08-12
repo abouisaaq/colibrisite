@@ -22,7 +22,7 @@ const stats = [
   {
     key: "families",
     icon: Users,
-    label: "Familles aidées",
+    label: "Actions vers les familles",
     gradient: "from-[#3CCB8A] to-[#42D7C8]",
     ring: "from-[#3CCB8A] via-[#42D7C8] to-[#3CCB8A]",
     glow: "bg-[#3CCB8A]/30",

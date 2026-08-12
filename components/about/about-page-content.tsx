@@ -234,7 +234,7 @@ export function AboutPageContent({
   const colibriImage = colibriImageUrl || ABOUT_IMAGES.colibri;
 
   const impactStats = [
-    { value: Number(families) || 0, label: "Familles accompagnées" },
+    { value: Number(families) || 0, label: "Actions vers les familles" },
     { value: Number(volunteers) || 0, label: "Bénévoles" },
     { value: Number(projects) || 0, label: "Actions solidaires" },
     { value: Number(partners) || 0, label: "Partenaires" },

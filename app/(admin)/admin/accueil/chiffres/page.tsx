@@ -16,7 +16,7 @@ export default async function AccueilChiffresPage() {
       <SectionFieldsForm
         values={settings}
         fields={[
-          { key: SETTING_KEYS.statFamilies, label: "Familles aidées" },
+          { key: SETTING_KEYS.statFamilies, label: "Actions vers les familles" },
           { key: SETTING_KEYS.statVolunteers, label: "Bénévoles actifs" },
           { key: SETTING_KEYS.statProjects, label: "Projets réalisés" },
           { key: SETTING_KEYS.statPartners, label: "Partenaires" },

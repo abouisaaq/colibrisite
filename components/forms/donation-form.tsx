@@ -3,16 +3,13 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import { PayPalDonationButtons } from "@/components/forms/paypal-donation-buttons";
 import { PayPalMeButton } from "@/components/forms/paypal-me-button";
 import {
   RibDonationButton,
   type RibDetails,
 } from "@/components/forms/rib-donation-button";
-import type { PayPalEnvironment } from "@/lib/paypal-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { DEFAULT_SITE_PAGE_IMAGES } from "@/lib/site-images";
 
@@ -24,8 +21,6 @@ interface DonationFormProps {
   title?: string;
   subtitle?: string;
   imageUrl?: string;
-  paypalClientId: string;
-  paypalEnvironment: PayPalEnvironment;
   paypalMeUrl?: string;
   rib?: RibDetails;
 }
@@ -63,8 +58,6 @@ export function DonationForm({
   title,
   subtitle,
   imageUrl,
-  paypalClientId,
-  paypalEnvironment,
   paypalMeUrl,
   rib,
 }: DonationFormProps) {
@@ -238,24 +231,6 @@ export function DonationForm({
               className="pointer-events-none absolute -inset-3 rounded-2xl bg-[#4FD1A5]/[0.14] blur-2xl"
               aria-hidden
             />
-            {paypalClientId ? (
-              <PayPalScriptProvider
-                options={{
-                  clientId: paypalClientId,
-                  currency: "EUR",
-                  intent: "capture",
-                  environment: paypalEnvironment,
-                }}
-              >
-                <div className="relative z-[1] min-w-0 max-w-full [&_iframe]:max-w-full">
-                  <PayPalDonationButtons
-                    finalAmount={finalAmount}
-                    donorName={donorName}
-                    donorEmail={donorEmail}
-                  />
-                </div>
-              </PayPalScriptProvider>
-            ) : null}
 
             {paypalMeUrl?.trim() ? (
               <PayPalMeButton url={paypalMeUrl} amount={finalAmount} />

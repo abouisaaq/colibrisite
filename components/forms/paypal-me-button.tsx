@@ -1,7 +1,5 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
-
 function buildPaypalMeHref(baseUrl: string, amount: number): string {
   const trimmed = baseUrl.trim();
   if (!trimmed) return "";
@@ -43,13 +41,9 @@ export function PayPalMeButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="relative z-[1] mt-2 flex h-[45px] w-full items-center justify-center gap-2 rounded-[4px] border border-[#0070BA]/35 bg-[#0070BA] text-[15px] font-semibold tracking-wide text-white transition-colors hover:bg-[#005EA6] active:bg-[#004C8C]"
+      className="relative z-[1] flex h-[45px] w-full items-center justify-center rounded-[4px] border border-[#0070BA]/35 bg-[#0070BA] text-[15px] font-semibold tracking-[0.08em] text-white transition-colors hover:bg-[#005EA6] active:bg-[#004C8C]"
     >
-      <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-white/15 text-[10px] font-bold">
-        €
-      </span>
-      Donner via PayPal.me
-      <ExternalLink className="h-3.5 w-3.5 opacity-80" aria-hidden />
+      PAYPAL
     </a>
   );
 }

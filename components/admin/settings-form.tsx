@@ -97,43 +97,14 @@ const sections: SettingsSection[] = [
   {
     title: "PayPal",
     description:
-      "Identifiants pour les dons en ligne. En local, le fichier .env reste utilisé en secours tant que Client ID et Secret ne sont pas remplis ici.",
+      "Lien PayPal.me affiché sur la page Faire un don (bouton PAYPAL).",
     fields: [
-      {
-        key: SETTING_KEYS.paypalMode,
-        label: "Mode",
-        type: "select",
-        options: [
-          { value: "sandbox", label: "Sandbox (test)" },
-          { value: "live", label: "Live (production)" },
-        ],
-      },
-      {
-        key: SETTING_KEYS.paypalClientId,
-        label: "Client ID",
-        type: "text",
-        placeholder: "AXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      },
-      {
-        key: SETTING_KEYS.paypalClientSecret,
-        label: "Secret",
-        type: "password",
-        placeholder: "Re-saisir pour modifier",
-        hint: "Laissez vide pour conserver le secret actuel.",
-      },
-      {
-        key: SETTING_KEYS.paypalWebhookId,
-        label: "Webhook ID (optionnel)",
-        type: "password",
-        placeholder: "Re-saisir pour modifier",
-        hint: "Laissez vide pour conserver le Webhook ID actuel.",
-      },
       {
         key: SETTING_KEYS.paypalMeUrl,
         label: "Lien PayPal.me",
         type: "text",
         placeholder: "https://paypal.me/VotrePseudo",
-        hint: "Affiché sous le bouton PayPal sur la page Faire un don. Plus simple pour les donateurs si le paiement intégré pose problème.",
+        hint: "Ex. https://paypal.me/VotrePseudo — le montant choisi est ajouté automatiquement.",
       },
     ],
   },
@@ -229,12 +200,8 @@ function fieldDefaultValue(key: string, settings: Record<string, string>): strin
 
 export function SettingsForm({
   settings,
-  hasPayPalSecret = false,
-  hasPayPalWebhook = false,
 }: {
   settings: Record<string, string>;
-  hasPayPalSecret?: boolean;
-  hasPayPalWebhook?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -335,18 +302,6 @@ export function SettingsForm({
                       className="mt-1"
                       autoComplete={field.type === "password" ? "new-password" : undefined}
                     />
-                    {field.type === "password" &&
-                    field.key === SETTING_KEYS.paypalClientSecret &&
-                    hasPayPalSecret ? (
-                      <p className="mt-1 text-xs text-[#0d8f5f]">Un secret est déjà enregistré.</p>
-                    ) : null}
-                    {field.type === "password" &&
-                    field.key === SETTING_KEYS.paypalWebhookId &&
-                    hasPayPalWebhook ? (
-                      <p className="mt-1 text-xs text-[#0d8f5f]">
-                        Un Webhook ID est déjà enregistré.
-                      </p>
-                    ) : null}
                   </>
                 )}
                 {field.hint ? (

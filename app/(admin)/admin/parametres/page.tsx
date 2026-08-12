@@ -14,8 +14,6 @@ export default async function AdminSettingsPage() {
   }
 
   const settings = await getAllSettings();
-  const hasPayPalSecret = Boolean(settings[SETTING_KEYS.paypalClientSecret]);
-  const hasPayPalWebhook = Boolean(settings[SETTING_KEYS.paypalWebhookId]);
   const {
     [SETTING_KEYS.paypalClientSecret]: _secret,
     [SETTING_KEYS.paypalWebhookId]: _webhookId,
@@ -27,14 +25,10 @@ export default async function AdminSettingsPage() {
       <AdminPageHeader
         eyebrow="Système"
         title="Paramètres"
-        description="Configuration du site, SEO, statistiques et identifiants PayPal"
+        description="Configuration du site, SEO, PayPal.me et RIB"
       />
       <AdminPanel padded>
-        <SettingsForm
-          settings={publicSettings}
-          hasPayPalSecret={hasPayPalSecret}
-          hasPayPalWebhook={hasPayPalWebhook}
-        />
+        <SettingsForm settings={publicSettings} />
       </AdminPanel>
     </div>
   );

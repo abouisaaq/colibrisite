@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { DonationForm } from "@/components/forms/donation-form";
 import { PageHero } from "@/components/layout/page-hero";
 import { SiteMain } from "@/components/layout/site-main";
-import { getPayPalCredentials } from "@/lib/paypal-credentials";
 import { getPublicSettings } from "@/lib/settings";
 import { resolveSitePageImage } from "@/lib/site-images";
 
@@ -13,10 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DonatePage() {
-  const [settings, paypalCredentials] = await Promise.all([
-    getPublicSettings(),
-    getPayPalCredentials(),
-  ]);
+  const settings = await getPublicSettings();
 
   return (
     <>
@@ -46,8 +42,6 @@ export default async function DonatePage() {
               title={settings.cta_title}
               subtitle={settings.cta_subtitle}
               imageUrl={resolveSitePageImage(settings, "donation")}
-              paypalClientId={paypalCredentials.clientId}
-              paypalEnvironment={paypalCredentials.environment}
               paypalMeUrl={settings.paypal_me_url}
               rib={{
                 accountHolder: settings.rib_account_holder,

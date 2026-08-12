@@ -109,6 +109,7 @@ export const SETTING_KEYS = {
   paypalClientId: "paypal_client_id",
   paypalClientSecret: "paypal_client_secret",
   paypalWebhookId: "paypal_webhook_id",
+  paypalMeUrl: "paypal_me_url",
   ribAccountHolder: "rib_account_holder",
   ribBankName: "rib_bank_name",
   ribIban: "rib_iban",

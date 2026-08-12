@@ -48,6 +48,7 @@ export default async function DonatePage() {
               imageUrl={resolveSitePageImage(settings, "donation")}
               paypalClientId={paypalCredentials.clientId}
               paypalEnvironment={paypalCredentials.environment}
+              paypalMeUrl={settings.paypal_me_url}
               rib={{
                 accountHolder: settings.rib_account_holder,
                 bankName: settings.rib_bank_name,

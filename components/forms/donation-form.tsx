@@ -7,6 +7,7 @@ import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { PayPalDonationButtons } from "@/components/forms/paypal-donation-buttons";
+import { PayPalMeButton } from "@/components/forms/paypal-me-button";
 import {
   RibDonationButton,
   type RibDetails,
@@ -25,6 +26,7 @@ interface DonationFormProps {
   imageUrl?: string;
   paypalClientId: string;
   paypalEnvironment: PayPalEnvironment;
+  paypalMeUrl?: string;
   rib?: RibDetails;
 }
 
@@ -63,6 +65,7 @@ export function DonationForm({
   imageUrl,
   paypalClientId,
   paypalEnvironment,
+  paypalMeUrl,
   rib,
 }: DonationFormProps) {
   const searchParams = useSearchParams();
@@ -252,6 +255,10 @@ export function DonationForm({
                   />
                 </div>
               </PayPalScriptProvider>
+            ) : null}
+
+            {paypalMeUrl?.trim() ? (
+              <PayPalMeButton url={paypalMeUrl} amount={finalAmount} />
             ) : null}
 
             <RibDonationButton rib={rib ?? {}} />

@@ -128,6 +128,13 @@ const sections: SettingsSection[] = [
         placeholder: "Re-saisir pour modifier",
         hint: "Laissez vide pour conserver le Webhook ID actuel.",
       },
+      {
+        key: SETTING_KEYS.paypalMeUrl,
+        label: "Lien PayPal.me",
+        type: "text",
+        placeholder: "https://paypal.me/VotrePseudo",
+        hint: "Affiché sous le bouton PayPal sur la page Faire un don. Plus simple pour les donateurs si le paiement intégré pose problème.",
+      },
     ],
   },
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { motion, useInView } from "framer-motion";
 import { submitContact } from "@/actions/public";
 import { Button } from "@/components/ui/button";
@@ -95,17 +95,26 @@ export function ContactForm({
   mapEmbedUrl,
 }: ContactFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [formStarted, setFormStarted] = useState("");
   const sectionRef = useRef<HTMLDivElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.12 });
 
+  useEffect(() => {
+    setFormStarted(String(Date.now()));
+  }, []);
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    if (!formData.get("_formStarted")) {
+      formData.set("_formStarted", formStarted || String(Date.now()));
+    }
     startTransition(async () => {
       try {
         await submitContact(formData);
         toast.success("Message envoyé avec succès !");
-        (e.target as HTMLFormElement).reset();
+        form.reset();
       } catch {
         toast.error("Erreur lors de l'envoi du message.");
       }
@@ -157,6 +166,28 @@ export function ContactForm({
             </p>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <input
+                type="hidden"
+                name="_formStarted"
+                value={formStarted}
+                readOnly
+                aria-hidden
+                tabIndex={-1}
+              />
+              <div
+                className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
+                aria-hidden
+              >
+                <label htmlFor="contact-company">Société</label>
+                <input
+                  id="contact-company"
+                  name="company"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="name" className="text-[13px] font-medium text-[#334155]">

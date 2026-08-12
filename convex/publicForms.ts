@@ -1,5 +1,40 @@
 import { v } from "convex/values";
+import type { MutationCtx } from "./_generated/server";
 import { bridgedMutation, bridgedQuery } from "./lib/bridgeAuth";
+
+const DUPLICATE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_PER_EMAIL_PER_DAY = 2;
+
+function normalizeEmail(email: string): string {
+  const trimmed = email.trim().toLowerCase();
+  const at = trimmed.indexOf("@");
+  if (at < 1) return trimmed;
+  const local = trimmed.slice(0, at);
+  const domain = trimmed.slice(at + 1);
+  if (domain === "gmail.com" || domain === "googlemail.com") {
+    const withoutDots = local.split("+")[0].replace(/\./g, "");
+    return `${withoutDots}@${domain}`;
+  }
+  return trimmed;
+}
+
+async function countRecentByEmail(
+  ctx: MutationCtx,
+  table: "volunteers" | "contactMessages",
+  email: string
+): Promise<number> {
+  const since = Date.now() - DUPLICATE_WINDOW_MS;
+  const normalized = normalizeEmail(email);
+  const rows = await ctx.db
+    .query(table)
+    .withIndex("by_email", (q) => q.eq("email", email))
+    .collect();
+
+  return rows.filter(
+    (row) =>
+      row._creationTime >= since && normalizeEmail(row.email) === normalized
+  ).length;
+}
 
 export const submitContact = bridgedMutation({
   args: {
@@ -8,8 +43,13 @@ export const submitContact = bridgedMutation({
     subject: v.optional(v.string()),
     message: v.string(),
   },
-  returns: v.id("contactMessages"),
+  returns: v.union(v.id("contactMessages"), v.null()),
   handler: async (ctx, args) => {
+    const recent = await countRecentByEmail(ctx, "contactMessages", args.email);
+    if (recent >= MAX_PER_EMAIL_PER_DAY) {
+      return null;
+    }
+
     return await ctx.db.insert("contactMessages", {
       ...args,
       read: false,
@@ -28,8 +68,13 @@ export const submitVolunteer = bridgedMutation({
     domains: v.optional(v.string()),
     message: v.optional(v.string()),
   },
-  returns: v.id("volunteers"),
+  returns: v.union(v.id("volunteers"), v.null()),
   handler: async (ctx, args) => {
+    const recent = await countRecentByEmail(ctx, "volunteers", args.email);
+    if (recent >= MAX_PER_EMAIL_PER_DAY) {
+      return null;
+    }
+
     return await ctx.db.insert("volunteers", {
       ...args,
       status: "NEW",

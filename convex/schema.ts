@@ -138,7 +138,9 @@ export default defineSchema({
       v.literal("ACCEPTED"),
       v.literal("REJECTED")
     ),
-  }).index("by_status", ["status"]),
+  })
+    .index("by_status", ["status"])
+    .index("by_email", ["email"]),
 
   contactMessages: defineTable({
     name: v.string(),
@@ -146,7 +148,9 @@ export default defineSchema({
     subject: v.optional(v.string()),
     message: v.string(),
     read: v.boolean(),
-  }).index("by_read", ["read"]),
+  })
+    .index("by_read", ["read"])
+    .index("by_email", ["email"]),
 
   siteSettings: defineTable({
     key: v.string(),

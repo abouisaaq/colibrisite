@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { Check, Heart } from "lucide-react";
@@ -81,8 +81,13 @@ export function VolunteerForm({
   imageUrl,
 }: VolunteerFormProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const [formStarted, setFormStarted] = useState("");
   const inView = useInView(sectionRef, { once: true, amount: 0.15 });
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setFormStarted(String(Date.now()));
+  }, []);
 
   const formattedVolunteers = Number(volunteersCount).toLocaleString("fr-FR");
   const formattedFamilies = Number(familiesCount).toLocaleString("fr-FR");
@@ -92,6 +97,9 @@ export function VolunteerForm({
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
+    if (!formData.get("_formStarted")) {
+      formData.set("_formStarted", formStarted || String(Date.now()));
+    }
 
     startTransition(async () => {
       try {
@@ -171,6 +179,28 @@ export function VolunteerForm({
           onSubmit={handleSubmit}
           className="h-full rounded-[32px] border border-[#E5E7EB]/80 bg-white p-6 shadow-[0_8px_40px_rgba(15,23,42,0.06)] sm:p-8 lg:p-10"
         >
+          <input
+            type="hidden"
+            name="_formStarted"
+            value={formStarted}
+            readOnly
+            aria-hidden
+            tabIndex={-1}
+          />
+          <div
+            className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
+            aria-hidden
+          >
+            <label htmlFor="volunteer-company">Société</label>
+            <input
+              id="volunteer-company"
+              name="company"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0d8f5f]">
             Devenir bénévole
           </p>

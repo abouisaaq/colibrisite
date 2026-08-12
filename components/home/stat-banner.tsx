@@ -154,7 +154,7 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
           </h2>
         </ScrollReveal>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-4">
+        <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-4">
           {stats.map((stat, index) => (
             <StaggerReveal
               key={stat.key}
@@ -164,10 +164,11 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
               delayStep={0.22}
               duration={1.15}
               onSettled={() => markCardSettled(index)}
+              className="h-full"
             >
               <article
                 className={cn(
-                  "group relative flex flex-col items-center overflow-hidden rounded-2xl px-3 py-3 text-center sm:px-4 sm:py-3.5",
+                  "group relative flex h-full min-h-[168px] flex-col items-center overflow-hidden rounded-2xl px-3 py-3 text-center sm:min-h-[180px] sm:px-4 sm:py-3.5",
                   "stat-card-glass transition-shadow duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
                   "hover:-translate-y-1.5 hover:shadow-[0_20px_44px_rgba(15,23,42,0.12)]"
                 )}
@@ -214,7 +215,7 @@ export function StatBanner({ families, volunteers, projects, partners }: StatBan
                   </span>
                 </p>
 
-                <p className="mt-1.5 max-w-[8.5rem] text-center text-[12px] font-medium leading-snug text-[#6B7280] sm:text-[13px]">
+                <p className="mt-auto flex min-h-[2.5rem] items-center justify-center px-0.5 text-center text-[12px] font-medium leading-snug text-[#6B7280] sm:min-h-[2.75rem] sm:text-[13px]">
                   {stat.label}
                 </p>
               </article>
